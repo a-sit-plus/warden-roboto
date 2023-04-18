@@ -1,0 +1,3 @@
+[submodule "android-key-attestation"]
+	path = android-key-attestation
+	url = https://github.com/google/android-key-attestation.git
