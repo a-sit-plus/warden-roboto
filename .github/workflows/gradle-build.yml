@@ -9,7 +9,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build jar
-        run: ./gradlew assemble
+        run: ./gradlew test assemble
       - name: Upload jar
         uses: actions/upload-artifact@v3
         with:
