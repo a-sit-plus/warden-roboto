@@ -5,7 +5,7 @@
 ![Build artifacts](https://github.com/a-sit-plus/android-attestation/actions/workflows/gradle-build.yml/badge.svg)
 [![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/android-attestation)](https://mvnrepository.com/artifact/at.asitplus/android-attestation/)
 
-This Kotlin library provides a convenient API (a single function, actually) to attest remotely attest the integrity of an Android device, its OS and a specific application.
+This Kotlin library provides a convenient API (a single function, actually) to remotely attest the integrity of an Android device, its OS and a specific application.
 It is intended to be integrated into back-end services requiring authentic, unmodified mobile clients (but it also works in other settings, such as peer-to-peer-scenarios).
 It is based off [code from Google](https://github.com/google/android-key-attestation) (and actually directly integrates it), such that it can easily keep up with upstream for the lower-level functionality.
 Because of this, it only targets the JVM, although a KMP rewrite (also targeting JS/Node) is possible.
@@ -15,6 +15,10 @@ as done by pretty much every verification function of classes form the `java.sec
 This library is an integral part of the more comprehensive [Attestation Service](https://github.com/a-sit-plus/attestaton-service), which also supports iOS clients and provides
 more idiomatic kotlin interfaces.
 However, if you are only concerned about Android clients, this library provides all functionality needed without unnecessary bloat.
+
+## Development
+
+See [DEVELOPMENT.md](DEVELOPMENT.md)
 
 ## Background
 Android devices with a TEE allow for cryptographic keys to be generated in hardware. These keys can only be used, but not exported and are safe from extraction due protective hardware measures. The Android Keystore API expose this hardware-based management of cryptographic material and also allows for generating certficates for such keys, which contain custom Extension that indicate the location of a key (hardware or software).
