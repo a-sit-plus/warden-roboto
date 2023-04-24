@@ -2,7 +2,7 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-brightgreen.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) 
 [![Kotlin](https://img.shields.io/badge/kotlin-1.8.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![Java](https://img.shields.io/badge/java-11-blue.svg?logo=OPENJDK)
-<!--[![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/android-attestation)](https://mvnrepository.com/artifact/at.asitplus/android-attestation/)-->
+[![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/android-attestation)](https://mvnrepository.com/artifact/at.asitplus/android-attestation/)
 
 This Kotlin library provides a convenient API (a single function, actually) to attest remotely attest the integrity of an Android device, its OS and a specific application.
 It is intended to be integrated into back-end services requiring authentic, unmodified mobile clients (but it also works in other settings, such as peer-to-peer-scenarios).
@@ -25,18 +25,16 @@ A noteworthy property of this attestation concept is that no third party needs t
 ## Usage
 
 Written in Kotlin, plays nicely with Java (cf. `@JvmOverloads`).
-<!--
-
 
 This library is published at maven central.
 ### Gradle
 
 ```kotlin
  dependencies {
-     implementation("at.asitplus:android-attestation:0.8.2")
+     implementation("at.asitplus:android-attestation:$version")
  }
 ```
--->
+
 The main class is `AndroidAttestationChecker`. Configuration is based on the data class `AttestationConfiguration`. Some properties are nullable – if unset, no checks against these properties are made. 
 
 ### Configuration
