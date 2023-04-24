@@ -21,7 +21,7 @@ import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
 import java.util.*
 
-class AndroidAttestationChecker(
+class AndroidAttestationChecker @JvmOverloads constructor(
     private val attestationConfiguration: AndroidAttestationConfiguration,
     private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean = { expected, actual -> expected contentEquals actual }
 ) {

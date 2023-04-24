@@ -2,7 +2,7 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-brightgreen.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) 
 [![Kotlin](https://img.shields.io/badge/kotlin-1.8.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![Java](https://img.shields.io/badge/java-11-blue.svg?logo=OPENJDK)
-[![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/android-attestation)](https://mvnrepository.com/artifact/at.asitplus/android-attestation/)
+<!--[![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/android-attestation)](https://mvnrepository.com/artifact/at.asitplus/android-attestation/)-->
 
 This Kotlin library provides a convenient API (a single function, actually) to attest remotely attest the integrity of an Android device, its OS and a specific application.
 It is intended to be integrated into back-end services requiring authentic, unmodified mobile clients (but it also works in other settings, such as peer-to-peer-scenarios).
@@ -23,6 +23,20 @@ Hence, verifying this certificate chain against this Google root key makes it po
 A noteworthy property of this attestation concept is that no third party needs to be contacted (except for obtaining certificate revocation information) compared to Apple's AppAttest/DeviceCheck.
 
 ## Usage
+
+Written in Kotlin, plays nicely with Java (cf. `@JvmOverloads`).
+<!--
+
+
+This library is published at maven central.
+### Gradle
+
+```kotlin
+ dependencies {
+     implementation("at.asitplus:android-attestation:0.8.2")
+ }
+```
+-->
 The main class is `AndroidAttestationChecker`. Configuration is based on the data class `AttestationConfiguration`. Some properties are nullable – if unset, no checks against these properties are made. 
 
 ### Configuration
@@ -42,6 +56,9 @@ val checker = AndroidAttestationChecker(
 ```
 
 The (nullable) properties like patch level and app version essentially allow for excluding outdated devices and obsolete app releases. If, for example a critical flaw is discovered in an attested app, users can be forced to update by considering only the latest and greatest version trustworthy and configuring the `AndroidAttestationChecker` instance accordingly.
+
+In addition, it is possible to override the function which verifies the challenge used to verify an attestation.
+By default, this is simply a `contentEquals` on the provided challenge vs a reference value.
 
 ### Obtaining an Attestation Result
 1. The general workflow this library caters to assumes a back-end service, sending an attestation challenge to the mobile app. This challenge needs to be kept for future reference

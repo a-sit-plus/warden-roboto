@@ -32,3 +32,6 @@ attestation failed and the library works nicely with pure java
 
 ## 0.8
 - ability to ignore timely validity of leaf cert
+
+## 0.8.2
+- more `@JvmOverloads`
