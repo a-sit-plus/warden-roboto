@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.util.*
 
@@ -7,8 +6,6 @@ Properties().apply {
     forEach { (k, v) -> extra.set(k as String, v) }
 }
 
-val jdk8: String? = project.properties["jdk8"] as String?
-val useJdk8 by lazy { jdk8 == "true" }
 
 plugins {
     kotlin("jvm") version "1.8.20"
@@ -16,21 +13,30 @@ plugins {
     id("maven-publish")
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     id("signing")
+    id("me.champeau.mrjar") version "0.1"
+}
+
+multiRelease {
+    targetVersions(8, 11)
 }
 
 group = "at.asitplus"
-version = "0.8.2"
+version = "0.8.3"
+
 
 
 sourceSets.main {
     java {
-        srcDirs(
-            if (useJdk8) "${project.rootDir}/src/main/google"
-            else "${project.rootDir}/android-key-attestation/server/src/main/java"
-        )
+        srcDirs("${project.rootDir}/src/main/google")
         exclude("com/android/example/")
     }
+}
 
+sourceSets.getByName("java11") {
+    java {
+        srcDirs("${project.rootDir}/android-key-attestation/server/src/main/java")
+        exclude("com/android/example/")
+    }
 }
 
 sourceSets.test {
@@ -39,21 +45,6 @@ sourceSets.test {
     kotlin {
         srcDir("src/test/kotlin/data")
     }
-}
-
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
-
-val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
-    archiveClassifier.set((if (useJdk8) "jdk8-" else "") + "javadoc")
-    from(dokkaHtml.outputDirectory)
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = if (useJdk8) "1.8" else "11"
-}
-tasks.compileJava {
-    options.release.set(if (useJdk8) 8 else 11)
 }
 
 dependencies {
@@ -69,15 +60,20 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+val java11Implementation by configurations.getting
+java11Implementation.extendsFrom(configurations.getByName("implementation"))
 
+val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
 
-val sourcesJar by tasks.registering(Jar::class) {
-    archiveClassifier.set((if (useJdk8) "jdk8-" else "") + "sources")
-    from(sourceSets.main.get().allSource)
+val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+    dependsOn(dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.outputDirectory)
 }
 
-tasks.jar {
-    if (useJdk8) archiveClassifier.set("jdk8")
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
 }
 
 repositories {
