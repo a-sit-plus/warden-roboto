@@ -33,5 +33,9 @@ attestation failed and the library works nicely with pure java
 ## 0.8
 - ability to ignore timely validity of leaf cert
 
-## 0.8.2
+### 0.8.2
 - more `@JvmOverloads`
+
+### 0.8.3
+- MR Jar Release (Java 11 directly uses code from Google, Java 8 version uses adapted one for legacy support)
+- Drop `-jdk8` classifier for proper release to maven central
