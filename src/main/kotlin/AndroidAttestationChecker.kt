@@ -4,7 +4,6 @@ import at.asitplus.attestation.android.exceptions.AttestationException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.android.exceptions.RevocationException
 import com.google.android.attestation.CertificateRevocationStatus
-import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.RootOfTrust
 import com.google.gson.Gson
@@ -13,12 +12,9 @@ import com.google.gson.JsonParser
 import java.io.Reader
 import java.math.BigInteger
 import java.net.URL
-import java.security.KeyFactory
 import java.security.Principal
 import java.security.PublicKey
 import java.security.cert.X509Certificate
-import java.security.interfaces.RSAPublicKey
-import java.security.spec.X509EncodedKeySpec
 import java.util.*
 
 class AndroidAttestationChecker @JvmOverloads constructor(
@@ -67,11 +63,17 @@ class AndroidAttestationChecker @JvmOverloads constructor(
 
     private fun List<X509Certificate>.verifyRootCertificate(verificationDate: Date) {
         val root = last()
-        if (!root.publicKey.encoded.contentEquals(googleRootPublicKey)) {
-            throw CertificateInvalidException("Root certificate invalid")
-        }
         root.checkValidity(verificationDate)
-        root.verify(parsedGoogleRootKey)
+        val errors = attestationConfiguration.trustAnchors.mapNotNull {
+            runCatching {
+                if (!root.publicKey.encoded.contentEquals(it.encoded)) {
+                    throw CertificateInvalidException("Root certificate invalid")
+                }
+                root.verify(it)
+            }.fold(onSuccess = { null }, onFailure = { it })
+        }
+        if(errors.size==attestationConfiguration.trustAnchors.size)
+        throw errors.firstOrNull { it !is CertificateInvalidException } ?: errors.first()
     }
 
     @Throws(AttestationException::class)
@@ -190,12 +192,6 @@ class AndroidAttestationChecker @JvmOverloads constructor(
         parsedAttestationRecord.verifyApplicationPackageNameAndSignatureDigest()
         return parsedAttestationRecord
     }
-
-    private val googleRootPublicKey = Base64.getDecoder().decode(GOOGLE_ROOT_CA_PUB_KEY)
-
-    private val parsedGoogleRootKey: RSAPublicKey =
-        KeyFactory.getInstance("RSA").generatePublic(X509EncodedKeySpec(googleRootPublicKey)) as RSAPublicKey
-
 
     /**
      * taken and adapted from [com.google.android.attestation.CertificateRevocationStatus] to separate downloading and checking

@@ -1,17 +1,6 @@
 package at.asitplus.attestation.data
 
-import at.asitplus.attestation.android.AndroidAttestationChecker
-import at.asitplus.attestation.android.AndroidAttestationConfiguration
-import at.asitplus.attestation.android.PatchLevel
-import org.bouncycastle.asn1.ASN1Boolean
-import org.bouncycastle.asn1.ASN1Enumerated
-import org.bouncycastle.asn1.ASN1Integer
-import org.bouncycastle.asn1.ASN1ObjectIdentifier
-import org.bouncycastle.asn1.ASN1Sequence
-import org.bouncycastle.asn1.DEROctetString
-import org.bouncycastle.asn1.DERSequence
-import org.bouncycastle.asn1.DERSet
-import org.bouncycastle.asn1.DERTaggedObject
+import org.bouncycastle.asn1.*
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.cert.X509CertificateHolder
@@ -21,20 +10,21 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import java.math.BigInteger
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.PublicKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.time.Instant
-import java.util.Base64
-import java.util.Date
+import java.util.*
 import kotlin.random.Random
 
 object AttestationCreator {
-    fun main() {
-        val challenge = "challenge".encodeToByteArray()
-        val packageName = "at.asitplus.demo"
-        val appVersion = 5
-        val androidVersion = 11000
-        val signatureDigest = "signaturedigest".toByteArray()
+    fun createAttestation(
+        challenge: ByteArray,
+        packageName: String,
+        signatureDigest: ByteArray,
+        appVersion: Int,
+        androidVersion: Int
+    ): Pair<PublicKey, List<X509Certificate>> {
 
         val keyAttestation = KeyAttestationDefs(
             attestationVersion = 4,
@@ -63,26 +53,10 @@ object AttestationCreator {
                 androidPatchLevel = 202108,
             )
         )
-        val certs = create(keyAttestation)
-
-        val checker = AndroidAttestationChecker(
-            AndroidAttestationConfiguration(
-                packageName = packageName,
-                signatureDigests = listOf(signatureDigest),
-                appVersion = appVersion,
-                androidVersion = androidVersion,
-                patchLevel = PatchLevel(2021, 8),
-                requireStrongBox = false,
-                bootloaderUnlockAllowed = false,
-                ignoreLeafValidity = false,
-            )
-        )
-        val record = checker.verifyAttestation(
-            certificates = certs,
-            expectedChallenge = challenge
-        )
+        return create(keyAttestation)
     }
-    fun create(keyAttestation: KeyAttestationDefs): List<X509Certificate> {
+
+    private fun create(keyAttestation: KeyAttestationDefs): Pair<PublicKey, List<X509Certificate>> {
         val rootKeyPair = KeyPairGenerator.getInstance("EC").also {
             it.initialize(256)
         }.genKeyPair()
@@ -124,10 +98,10 @@ object AttestationCreator {
             keyAttestation.toSequence()
         ).build(intermediateKeyPair.contentSigner()).toX509Certificate()
 
-        return listOf(leafCert, intermediateCert, rootCert)
+        return rootKeyPair.public to listOf(leafCert, intermediateCert, rootCert)
     }
-
 }
+
 private fun X509CertificateHolder.toX509Certificate(): X509Certificate =
     CertificateFactory.getInstance("X.509").generateCertificate(this.encoded.inputStream()) as X509Certificate
 
