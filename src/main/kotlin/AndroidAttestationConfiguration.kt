@@ -1,6 +1,11 @@
 package at.asitplus.attestation.android
 
 import at.asitplus.attestation.android.exceptions.AttestationException
+import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
+import java.security.KeyFactory
+import java.security.PublicKey
+import java.security.spec.X509EncodedKeySpec
+import java.util.*
 
 /**
  * Nomen est omen
@@ -59,6 +64,11 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      * Whether to ignore the timely validity of the leaf certificate
      */
     val ignoreLeafValidity: Boolean = false,
+
+    val trustAnchors: List<PublicKey> = listOf(
+        KeyFactory.getInstance("RSA")
+            .generatePublic(X509EncodedKeySpec(Base64.getDecoder().decode(GOOGLE_ROOT_CA_PUB_KEY)))
+    )
 ) {
 
     /**
@@ -67,6 +77,7 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
     val osPatchLevel: Int? = patchLevel?.let { "%04d".format(it.year) + "%02d".format(it.month) }?.toInt()
 
     init {
+        if (trustAnchors.isEmpty()) throw AttestationException("No trust anchors configured")
         if (signatureDigests.isEmpty()) throw AttestationException("No signature digests specified")
     }
 }
