@@ -72,8 +72,8 @@ class AndroidAttestationChecker @JvmOverloads constructor(
                 root.verify(it)
             }.fold(onSuccess = { null }, onFailure = { it })
         }
-        if(errors.size==attestationConfiguration.trustAnchors.size)
-        throw errors.firstOrNull { it !is CertificateInvalidException } ?: errors.first()
+        if (errors.size == attestationConfiguration.trustAnchors.size)
+            throw errors.firstOrNull { it !is CertificateInvalidException } ?: errors.first()
     }
 
     @Throws(AttestationException::class)

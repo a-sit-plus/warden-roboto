@@ -86,7 +86,7 @@ object AttestationCreator {
         ).build(rootKeyPair.contentSigner()).toX509Certificate()
 
         val leafCert = X509v3CertificateBuilder(
-            /* issuer = */ X500Name("CN=Test"),
+            /* issuer = */ X500Name("CN=Intermediate"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
             /* notBefore = */ Date(),
             /* notAfter = */ Date(Date().time + 1000L * 60L * 60L /* = 60 minutes */),
