@@ -21,7 +21,7 @@ multiRelease {
 }
 
 group = "at.asitplus"
-version = "0.8.4-SNAPSHOT"
+version = "0.8.4"
 
 
 
