@@ -1,6 +1,14 @@
 package at.asitplus.attestation.data
 
-import org.bouncycastle.asn1.*
+import org.bouncycastle.asn1.ASN1Boolean
+import org.bouncycastle.asn1.ASN1Enumerated
+import org.bouncycastle.asn1.ASN1Integer
+import org.bouncycastle.asn1.ASN1ObjectIdentifier
+import org.bouncycastle.asn1.ASN1Sequence
+import org.bouncycastle.asn1.DEROctetString
+import org.bouncycastle.asn1.DERSequence
+import org.bouncycastle.asn1.DERSet
+import org.bouncycastle.asn1.DERTaggedObject
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.cert.X509CertificateHolder
@@ -10,23 +18,28 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import java.math.BigInteger
 import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.security.PublicKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.time.Instant
-import java.util.*
+import java.util.Date
 import kotlin.random.Random
 
 object AttestationCreator {
+    /**
+     * Creates a list of certificates, with the first certificate containing an Android Key Attestation Statement
+     * (as an X.509 extension), with values of the attestation as passed in the parameters.
+     */
     fun createAttestation(
         challenge: ByteArray,
         packageName: String,
         signatureDigest: ByteArray,
-        appVersion: Int,
-        androidVersion: Int
-    ): Pair<PublicKey, List<X509Certificate>> {
-
-        val keyAttestation = KeyAttestationDefs(
+        appVersion: Int = 1,
+        androidVersion: Int = 11,
+        androidPatchLevel: Int = 202108,
+        verifiedBootKey: ByteArray = Random.nextBytes(32),
+        verifiedBootHash: ByteArray = Random.nextBytes(32),
+    ): List<X509Certificate> = create(
+        KeyAttestationDefs(
             attestationVersion = 4,
             attestationSecurityLevel = SecurityLevel.TEE,
             keymasterVersion = 4,
@@ -44,29 +57,21 @@ object AttestationCreator {
             teeEnforced = SecurityProperties(
                 keySize = 256,
                 rootOfTrust = RootOfTrust(
-                    verifiedBootKey = "verifiedBootKey".encodeToByteArray(),
+                    verifiedBootKey = verifiedBootKey,
                     deviceLocked = true,
                     verifiedBootState = BootState.VERIFIED,
-                    verifiedBootHash = "verifiedBootHash".toByteArray(),
+                    verifiedBootHash = verifiedBootHash,
                 ),
                 androidVersion = androidVersion,
-                androidPatchLevel = 202108,
+                androidPatchLevel = androidPatchLevel,
             )
         )
-        return create(keyAttestation)
-    }
+    )
 
-    private fun create(keyAttestation: KeyAttestationDefs): Pair<PublicKey, List<X509Certificate>> {
+    private fun create(keyAttestation: KeyAttestationDefs): List<X509Certificate> {
         val rootKeyPair = KeyPairGenerator.getInstance("EC").also {
             it.initialize(256)
         }.genKeyPair()
-        val intermediateKeyPair = KeyPairGenerator.getInstance("EC").also {
-            it.initialize(256)
-        }.genKeyPair()
-        val leafKeyPair = KeyPairGenerator.getInstance("EC").also {
-            it.initialize(256)
-        }.genKeyPair()
-
         val rootCert = X509v3CertificateBuilder(
             /* issuer = */ X500Name("CN=Root"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
@@ -76,6 +81,9 @@ object AttestationCreator {
             /* publicKeyInfo = */ rootKeyPair.subjectPublicKeyInfo()
         ).build(rootKeyPair.contentSigner()).toX509Certificate()
 
+        val intermediateKeyPair = KeyPairGenerator.getInstance("EC").also {
+            it.initialize(256)
+        }.genKeyPair()
         val intermediateCert = X509v3CertificateBuilder(
             /* issuer = */ X500Name("CN=Root"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
@@ -85,6 +93,9 @@ object AttestationCreator {
             /* publicKeyInfo = */ intermediateKeyPair.subjectPublicKeyInfo()
         ).build(rootKeyPair.contentSigner()).toX509Certificate()
 
+        val leafKeyPair = KeyPairGenerator.getInstance("EC").also {
+            it.initialize(256)
+        }.genKeyPair()
         val leafCert = X509v3CertificateBuilder(
             /* issuer = */ X500Name("CN=Intermediate"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
@@ -98,7 +109,7 @@ object AttestationCreator {
             keyAttestation.toSequence()
         ).build(intermediateKeyPair.contentSigner()).toX509Certificate()
 
-        return rootKeyPair.public to listOf(leafCert, intermediateCert, rootCert)
+        return listOf(leafCert, intermediateCert, rootCert)
     }
 }
 

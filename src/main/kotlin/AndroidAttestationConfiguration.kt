@@ -5,12 +5,16 @@ import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
-import java.util.*
+import java.util.Base64
 
 /**
  * Nomen est omen
  */
-data class PatchLevel(val year: Int, val month: Int)
+data class PatchLevel(val year: Int, val month: Int) {
+    val asSingleInt: Int by lazy {
+        ("%04d".format(year) + "%02d".format(month)).toInt()
+    }
+}
 
 /**
  * Main Android Key attestation configuration class serving as ground truth for all key attestation verifications
@@ -18,7 +22,7 @@ data class PatchLevel(val year: Int, val month: Int)
 
 class AndroidAttestationConfiguration @JvmOverloads constructor(
     /**
-     * Android app package name (e.g. `at.asitplus.keyattestationdemio`)
+     * Android app package name (e.g. `at.asitplus.keyattestationdemo`)
      */
     val packageName: String,
     /**

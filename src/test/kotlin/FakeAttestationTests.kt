@@ -16,13 +16,15 @@ class FakeAttestationTests : FreeSpec({
         val signatureDigest = Random.nextBytes(32)
         val appVersion = 5
         val androidVersion = 11
+        val patchLevel = PatchLevel(2021, 8)
 
-        val (trustAnchor, attestationProof) = AttestationCreator.createAttestation(
-            challenge,
-            packageName,
-            signatureDigest,
-            appVersion,
-            androidVersion
+        val attestationProof = AttestationCreator.createAttestation(
+            challenge = challenge,
+            packageName = packageName,
+            signatureDigest = signatureDigest,
+            appVersion = appVersion,
+            androidVersion = androidVersion,
+            androidPatchLevel = patchLevel.asSingleInt
         )
 
         val checker = AndroidAttestationChecker(
@@ -31,11 +33,11 @@ class FakeAttestationTests : FreeSpec({
                 signatureDigests = listOf(signatureDigest),
                 appVersion = appVersion,
                 androidVersion = androidVersion,
-                patchLevel = PatchLevel(2021, 8),
+                patchLevel = patchLevel,
                 requireStrongBox = false,
                 bootloaderUnlockAllowed = false,
                 ignoreLeafValidity = false,
-                trustAnchors = listOf(trustAnchor)
+                trustAnchors = listOf(attestationProof.last().publicKey)
             )
         )
 
@@ -111,7 +113,7 @@ class FakeAttestationTests : FreeSpec({
                     signatureDigests = listOf(signatureDigest),
                     appVersion = appVersion,
                     androidVersion = androidVersion,
-                    patchLevel = PatchLevel(2021, 8),
+                    patchLevel = patchLevel,
                     requireStrongBox = false,
                     bootloaderUnlockAllowed = false,
                     ignoreLeafValidity = false
