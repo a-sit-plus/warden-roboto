@@ -78,7 +78,7 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
     /**
      * Internal representation of the patch level as contained in the [com.google.android.attestation.ParsedAttestationRecord]
      */
-    val osPatchLevel: Int? = patchLevel?.let { "%04d".format(it.year) + "%02d".format(it.month) }?.toInt()
+    val osPatchLevel: Int? = patchLevel?.asSingleInt
 
     init {
         if (trustAnchors.isEmpty()) throw AttestationException("No trust anchors configured")
