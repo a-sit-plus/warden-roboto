@@ -48,12 +48,15 @@ val checker = AndroidAttestationChecker(
     AndroidAttestationConfiguration(
         packageName = "at.asitplus.demo",           //Application package name
         signatureDigests = someLisfOfByteArrays,    //list of fingerprint of official package signing certificates
-        appVersion = 5,                             //minimum app version considered trustworthy (nullable)
-        androidVersion = 11000,                     //minimum android version considered to be trustworthy (nullable)
-        patchLevel =  PatchLevel(2021, 8),          //minimum patch level (year, month) considered to be trustworthy (nullable)
-        requireStrongBox = false,                   //TEE security level is enough, setting this true would require keys to be created within a Titan HSM
-        bootloaderUnlockAllowed = false,            //require a locked bootloader to ensure device integrity
-        ignoreLeafValidity = false,                 //Whether to ignore the timely validity of the leaf certificate (looking at you, Samsung!)
+        appVersion = 5,                             //NULLABLE. minimum app version considered trustworthy
+        androidVersion = 11000,                     //NULLABLE. minimum android version considered to be trustworthy
+        patchLevel =  PatchLevel(2021, 8),          //NULLABLE. minimum patch level (year, month) considered to be trustworthy
+        requireStrongBox = false,                   //OPTIONAL, defaults to false. By default TEE security level is enough.
+                                                    //setting this true would require keys to be created within a Titan HSM
+        bootloaderUnlockAllowed = false,            //OPTIONAL, defaults to false. By default requires a locked bootloader to ensure device integrity
+        ignoreLeafValidity = false,                 //OPTIONAL, defaults to false. Indicates whether to ignore the timely
+                                                    //validity of the leaf certificate (looking at you, Samsung!)
+        trustAnchors = listOf(trustedPublicKey),    //OPTIONAL, defaults to google HW attestation key. Useful for automated end-to-end tests
     )
 )
 ```

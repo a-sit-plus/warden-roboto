@@ -69,6 +69,10 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      */
     val ignoreLeafValidity: Boolean = false,
 
+    /**
+     * Manually specify the trust anchor for HW-attested certificate chains. Defaults to google HW attestation key.
+     * Overriding this list is useful for automated end-to-end tests, for example.
+     */
     val trustAnchors: List<PublicKey> = listOf(
         KeyFactory.getInstance("RSA")
             .generatePublic(X509EncodedKeySpec(Base64.getDecoder().decode(GOOGLE_ROOT_CA_PUB_KEY)))
