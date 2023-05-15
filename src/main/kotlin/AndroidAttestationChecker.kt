@@ -64,16 +64,10 @@ class AndroidAttestationChecker @JvmOverloads constructor(
     private fun List<X509Certificate>.verifyRootCertificate(verificationDate: Date) {
         val root = last()
         root.checkValidity(verificationDate)
-        val errors = attestationConfiguration.trustAnchors.mapNotNull {
-            runCatching {
-                if (!root.publicKey.encoded.contentEquals(it.encoded)) {
-                    throw CertificateInvalidException("Root certificate invalid")
-                }
-                root.verify(it)
-            }.fold(onSuccess = { null }, onFailure = { it })
-        }
-        if (errors.size == attestationConfiguration.trustAnchors.size)
-            throw errors.firstOrNull { it !is CertificateInvalidException } ?: errors.first()
+        val matchingTrustAnchor = attestationConfiguration.trustAnchors
+            .firstOrNull { root.publicKey.encoded.contentEquals(it.encoded) }
+            ?: throw CertificateInvalidException("No matching root certificate")
+        root.verify(matchingTrustAnchor)
     }
 
     @Throws(AttestationException::class)
