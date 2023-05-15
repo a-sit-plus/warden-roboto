@@ -5,7 +5,7 @@ import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
-import java.util.Base64
+import java.util.*
 
 /**
  * Nomen est omen
@@ -17,12 +17,29 @@ data class PatchLevel(val year: Int, val month: Int) {
 }
 
 /**
- * Main Android Key attestation configuration class serving as ground truth for all key attestation verifications
+ * Main Android Key attestation configuration class serving as ground truth for all key attestation verifications.
+ *
+ * @param packageName Android app package name (e.g. `at.asitplus.demo`)
+ * @param signatureDigests SHA-256 digests of signature certificates used to sign the APK. This is a Google cloud signing
+ * certificate for production play store releases. Being able to specify multiple digests makes it easy to use development
+ * builds and production builds in parallel.
+ * @param appVersion optional parameter. If set, attestation enforces application version to be greater or equal to this parameter
+ * @param patchLevel optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter
+ * @param requireStrongBox Set to `true` if *StrongBox* security level should be required
+ * @param bootloaderUnlockAllowed Set to true if unlocked bootloaders should be allowed.
+ * **Attention:** Allowing unlocked bootloaders in production effectively defeats the purpose of Key Attestation.
+ * Useful for debugging/testing
+ * @param requireRollbackResistance Unsupported by most devices.
+ * See [Official Documentation](https://source.android.com/docs/security/features/keystore/implementer-ref#rollback_resistance)
+ * @param ignoreLeafValidity Whether to ignore the timely validity of the leaf certificate (looking at you, Samsung!)
+ * @param trustAnchors Manually specify the trust anchor for HW-attested certificate chains. Defaults to google HW attestation key.
+ * Overriding this list is useful for automated end-to-end tests, for example.
+ *
  */
 
 class AndroidAttestationConfiguration @JvmOverloads constructor(
     /**
-     * Android app package name (e.g. `at.asitplus.keyattestationdemo`)
+     * Android app package name (e.g. `at.asitplus.demo`)
      */
     val packageName: String,
     /**
@@ -38,13 +55,13 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
     val appVersion: Int? = null,
 
     /**
-     * optional parameter If set, attestation enforces Android version to be greater or equal to this parameter.
+     * optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
      * **Caution:** Major Android versions increment in steps of thousands. I.e. Android 11 is specified as `11000`
      */
     val androidVersion: Int? = null,
 
     /**
-     * optional parameter If set, attestation enforces Security patch level to be greater or equal to this parameter.
+     * optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter.
      */
     patchLevel: PatchLevel? = null,
 

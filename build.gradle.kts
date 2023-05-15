@@ -63,12 +63,16 @@ tasks.test {
 val java11Implementation by configurations.getting
 java11Implementation.extendsFrom(configurations.getByName("implementation"))
 
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+
+tasks.dokkaHtml { outputDirectory.set(file("$projectDir/docs")) }
+val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
+    delete(tasks.dokkaHtml.get().outputDirectory.get())
+}
 
 val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
+    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
     archiveClassifier.set("javadoc")
-    from(dokkaHtml.outputDirectory)
+    from(tasks.dokkaHtml.get().outputDirectory)
 }
 
 val sourcesJar by tasks.registering(Jar::class) {
