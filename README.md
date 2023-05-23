@@ -82,3 +82,14 @@ By default, this is simply a `contentEquals` on the provided challenge vs a refe
 //throws an exception if attestation fails
 val atttestationRecord =  checker.verifyAttestation(attestationCertChain, Date(), challengeFromStep1)
 ```
+
+<br>
+
+---
+<p align="center">
+This project has received funding from the European Union’s Horizon 2020 research and innovation
+programme under grant agreement No 959072.
+</p>
+<p align="center">
+<img src="eu.svg" alt="EU flag">
+</p>
