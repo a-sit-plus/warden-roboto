@@ -1,16 +1,15 @@
 package at.asitplus.attestation.android
 
-import com.google.android.attestation.CertificateRevocationStatus
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+
 
 const val TEST_STATUS_LIST_PATH = "android-key-attestation/server/src/test/resources/status.json"
 
@@ -29,27 +28,6 @@ val TEST_CERT = """
 
 class RevocationTestFromGoogleSources : FreeSpec({
 
-    "from Google Sources" - {
-        "load Test Serial" {
-            val factory = CertificateFactory.getInstance("X509")
-            val cert =
-                factory.generateCertificate(ByteArrayInputStream(TEST_CERT.toByteArray(StandardCharsets.UTF_8))) as X509Certificate
-            val serialNumber = cert.serialNumber
-            val statusEntry = CertificateRevocationStatus
-                .loadStatusFromFile(serialNumber, TEST_STATUS_LIST_PATH)
-            (statusEntry).shouldNotBeNull()
-            statusEntry.status shouldBe CertificateRevocationStatus.Status.SUSPENDED
-            statusEntry.reason shouldBe CertificateRevocationStatus.Reason.KEY_COMPROMISE
-        }
-
-
-        "load Bad Serial" {
-            CertificateRevocationStatus.loadStatusFromFile("badbeef", TEST_STATUS_LIST_PATH).shouldBeNull()
-            CertificateRevocationStatus.loadStatusFromFile(BigInteger.valueOf(0xbadbeef), TEST_STATUS_LIST_PATH)
-                .shouldBeNull()
-        }
-    }
-
     "custom implementation" - {
 
         "load Test Serial" {
@@ -58,17 +36,16 @@ class RevocationTestFromGoogleSources : FreeSpec({
                 factory.generateCertificate(ByteArrayInputStream(TEST_CERT.toByteArray(StandardCharsets.UTF_8))) as X509Certificate
             val serialNumber = cert.serialNumber
             val statusEntry =
-                AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).reader())[serialNumber]
-            (statusEntry).shouldNotBeNull()
-            statusEntry.status shouldBe CertificateRevocationStatus.Status.SUSPENDED
-            statusEntry.reason shouldBe CertificateRevocationStatus.Reason.KEY_COMPROMISE
+                AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).inputStream())
+                    .isRevoked(serialNumber)
+            (statusEntry).shouldBeTrue()
         }
 
 
         "load Bad Serial" {
-            AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).reader())[BigInteger.valueOf(
-                0xbadbeef
-            )].shouldBeNull()
+            AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).inputStream()).isRevoked(
+                BigInteger.valueOf(0xbadbeef)
+            ).shouldBeFalse()
         }
     }
 })

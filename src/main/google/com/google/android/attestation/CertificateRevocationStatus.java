@@ -18,16 +18,16 @@ package com.google.android.attestation;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
+import java.util.HashMap;
 
 
 /**
@@ -35,74 +35,110 @@ import java.nio.file.Files;
  */
 public class CertificateRevocationStatus {
 
-    private static final String STATUS_URL = "https://android.googleapis.com/attestation/status";
-    public final Status status;
-    public final Reason reason;
-    public final String comment;
-    public final String expires;
+  private static final String STATUS_URL = "https://android.googleapis.com/attestation/status";
+  private static final String CACHE_PATH = "httpcache";
+  private static final Cache CACHE = new Cache(new File(CACHE_PATH), 10 * 1024 * 1024);
+  private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
+          .cache(CACHE)
+          .build();
 
-    public static CertificateRevocationStatus loadStatusFromFile(BigInteger serialNumber,
-                                                                 String filePath)
-            throws IOException {
-        return loadStatusFromFile(serialNumber.toString(16), filePath);
+  public final Status status;
+  public final Reason reason;
+  public final String comment;
+  public final String expires;
+
+  public static HashMap<String, CertificateRevocationStatus> fetchAllEntries() throws IOException {
+    URL url = new URL(STATUS_URL);
+    InputStreamReader statusListReader = new InputStreamReader(url.openStream());
+    return getEntryToStatusMap(statusListReader);
+  }
+
+  public static HashMap<String, CertificateRevocationStatus> loadAllEntriesFromFile(String filePath)
+          throws IOException {
+    FileReader reader = new FileReader(filePath);
+    return getEntryToStatusMap(reader);
+  }
+
+  private static HashMap<String, CertificateRevocationStatus> getEntryToStatusMap(
+          Reader statusListReader) {
+    JsonObject entries =
+            new JsonParser().parse(statusListReader).getAsJsonObject().getAsJsonObject("entries");
+
+    HashMap<String, CertificateRevocationStatus> serialNumberToStatus = new HashMap<>();
+    for (String serialNumber : entries.keySet()) {
+      serialNumberToStatus.put(
+              serialNumber,
+              new Gson().fromJson(entries.get(serialNumber), CertificateRevocationStatus.class));
     }
 
-    public static CertificateRevocationStatus loadStatusFromFile(String serialNumber, String filePath)
-            throws IOException {
-        FileReader reader = new FileReader(filePath);
-        return decodeStatus(serialNumber, reader);
+    return serialNumberToStatus;
+  }
+
+  public static CertificateRevocationStatus loadStatusFromFile(BigInteger serialNumber,
+      String filePath)
+      throws IOException {
+    return loadStatusFromFile(serialNumber.toString(16), filePath);
+  }
+
+  public static CertificateRevocationStatus loadStatusFromFile(String serialNumber, String filePath)
+      throws IOException {
+    FileReader reader = new FileReader(filePath);
+    return decodeStatus(serialNumber, reader);
+  }
+
+
+  public static CertificateRevocationStatus fetchStatus(BigInteger serialNumber)
+      throws IOException {
+    return fetchStatus(serialNumber.toString(16));
+  }
+
+  public static CertificateRevocationStatus fetchStatus(String serialNumber) throws IOException {
+    URL url;
+    try {
+      url = new URL(STATUS_URL);
+    } catch (MalformedURLException e) {
+      throw new IllegalStateException(e);
     }
 
+    Request request = new Request.Builder()
+            .url(url)
+            .build();
 
-    public static CertificateRevocationStatus fetchStatus(BigInteger serialNumber)
-            throws IOException {
-        return fetchStatus(serialNumber.toString(16));
+    try (Response response = CLIENT.newCall(request).execute()) {
+      return decodeStatus(serialNumber, response.body().charStream());
+    }
+  }
+
+  private static CertificateRevocationStatus decodeStatus(String serialNumber,
+      Reader statusListReader) {
+    if (serialNumber == null) {
+      throw new IllegalArgumentException("serialNumber cannot be null");
+    }
+    serialNumber = serialNumber.toLowerCase();
+
+    JsonObject entries = new JsonParser().parse(statusListReader)
+        .getAsJsonObject()
+        .getAsJsonObject("entries");
+
+    if (!entries.has(serialNumber)) {
+      return null;
     }
 
-    public static CertificateRevocationStatus fetchStatus(String serialNumber) throws IOException {
-        URL url;
-        try {
-            url = new URL(STATUS_URL);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException(e);
-        }
+    return new Gson().fromJson(entries.get(serialNumber), CertificateRevocationStatus.class);
+  }
 
-        InputStreamReader statusListReader = new InputStreamReader(url.openStream());
+  public enum Status {
+    REVOKED, SUSPENDED
+  }
 
-        return decodeStatus(serialNumber, statusListReader);
+  public enum Reason {
+    UNSPECIFIED, KEY_COMPROMISE, CA_COMPROMISE, SUPERSEDED, SOFTWARE_FLAW
+  }
 
-    }
-
-    private static CertificateRevocationStatus decodeStatus(String serialNumber,
-                                                            Reader statusListReader) {
-        if (serialNumber == null) {
-            throw new IllegalArgumentException("serialNumber cannot be null");
-        }
-        serialNumber = serialNumber.toLowerCase();
-
-        JsonObject entries = new JsonParser().parse(statusListReader)
-                .getAsJsonObject()
-                .getAsJsonObject("entries");
-
-        if (!entries.has(serialNumber)) {
-            return null;
-        }
-
-        return new Gson().fromJson(entries.get(serialNumber), CertificateRevocationStatus.class);
-    }
-
-    public enum Status {
-        REVOKED, SUSPENDED
-    }
-
-    public enum Reason {
-        UNSPECIFIED, KEY_COMPROMISE, CA_COMPROMISE, SUPERSEDED, SOFTWARE_FLAW
-    }
-
-    public CertificateRevocationStatus() {
-        status = Status.REVOKED;
-        reason = Reason.UNSPECIFIED;
-        comment = null;
-        expires = null;
-    }
+  public CertificateRevocationStatus() {
+    status = Status.REVOKED;
+    reason = Reason.UNSPECIFIED;
+    comment = null;
+    expires = null;
+  }
 }

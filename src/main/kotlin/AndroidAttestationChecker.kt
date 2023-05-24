@@ -3,15 +3,24 @@ package at.asitplus.attestation.android
 import at.asitplus.attestation.android.exceptions.AttestationException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.android.exceptions.RevocationException
-import com.google.android.attestation.CertificateRevocationStatus
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.RootOfTrust
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import java.io.Reader
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.jsonObject
+import java.io.IOException
+import java.io.InputStream
 import java.math.BigInteger
-import java.net.URL
 import java.security.Principal
 import java.security.PublicKey
 import java.security.cert.X509Certificate
@@ -52,9 +61,9 @@ class AndroidAttestationChecker @JvmOverloads constructor(
             throw CertificateInvalidException(it.message ?: "Certificate invalid", it)
         }
         runCatching {
-            statusList[certificate.serialNumber]
+            statusList.isRevoked(certificate.serialNumber)
         }.onSuccess {
-            if (it != null) // getting any status means not trustworthy
+            if (it) // getting any status means not trustworthy
                 throw RevocationException("Certificate revoked")
         }.onFailure {
             throw RevocationException("Could not get revocation list", it)
@@ -191,24 +200,24 @@ class AndroidAttestationChecker @JvmOverloads constructor(
      * taken and adapted from [com.google.android.attestation.CertificateRevocationStatus] to separate downloading and checking
      */
     class RevocationList(json: JsonObject) {
-        private val entries by lazy { json.getAsJsonObject("entries") }
-        operator fun get(
+        private val entries by lazy { json["entries"]?.jsonObject ?: throw IOException() }
+        fun isRevoked(
             serialNumber: BigInteger
-        ): CertificateRevocationStatus? {
+        ): Boolean {
             val serialNumberNormalised = serialNumber.toString(16).lowercase(Locale.getDefault())
-
-            return if (!entries.has(serialNumberNormalised)) {
-                null
-            } else Gson().fromJson(entries[serialNumberNormalised], CertificateRevocationStatus::class.java)
+            return entries[serialNumberNormalised] != null //any entry is a red flag!
         }
 
         companion object {
-            fun from(source: Reader) = RevocationList(JsonParser.parseReader(source).asJsonObject)
+            @OptIn(ExperimentalSerializationApi::class)
+            @JvmStatic
+            fun from(source: InputStream) = RevocationList(json.decodeFromStream(source))
 
             @Throws(Throwable::class)
-            fun fromGoogleServer() = from(
-                URL("https://android.googleapis.com/attestation/status").openStream().reader()
-            )
+            fun fromGoogleServer() =
+                runBlocking {
+                    RevocationList(client.get("https://android.googleapis.com/attestation/status").body<JsonObject>())
+                }
         }
     }
 }
@@ -273,3 +282,10 @@ class EternalX509Certificate(private val delegate: X509Certificate) : X509Certif
 
 }
 
+private val json = Json { ignoreUnknownKeys = true }
+private val client = HttpClient(CIO) {
+    install(HttpCache)
+    install(ContentNegotiation) {
+        json(json)
+    }
+}
