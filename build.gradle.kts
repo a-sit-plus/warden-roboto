@@ -21,7 +21,7 @@ multiRelease {
 }
 
 tasks.getByName<Test>("test") {
-    val javaToolchains  = project.extensions.getByType<JavaToolchainService>()
+    val javaToolchains = project.extensions.getByType<JavaToolchainService>()
     javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(JavaLanguageVersion.of(11))
     })
@@ -62,6 +62,7 @@ sourceSets.test {
 dependencies {
     val ktor_version = "2.3.0"
     testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
+    testImplementation("io.ktor:ktor-client-mock-jvm:$ktor_version")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.73")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")

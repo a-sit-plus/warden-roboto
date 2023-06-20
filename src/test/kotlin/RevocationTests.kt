@@ -3,6 +3,11 @@ package at.asitplus.attestation.android
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.shouldBe
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
+import io.ktor.util.date.*
+import io.ktor.utils.io.*
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.math.BigInteger
@@ -30,15 +35,44 @@ class RevocationTestFromGoogleSources : FreeSpec({
 
     "custom implementation" - {
 
+        val factory = CertificateFactory.getInstance("X509")
+        val cert =
+            factory.generateCertificate(ByteArrayInputStream(TEST_CERT.toByteArray(StandardCharsets.UTF_8))) as X509Certificate
+        val serialNumber = cert.serialNumber
+
         "load Test Serial" {
-            val factory = CertificateFactory.getInstance("X509")
-            val cert =
-                factory.generateCertificate(ByteArrayInputStream(TEST_CERT.toByteArray(StandardCharsets.UTF_8))) as X509Certificate
-            val serialNumber = cert.serialNumber
-            val statusEntry =
-                AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).inputStream())
-                    .isRevoked(serialNumber)
-            (statusEntry).shouldBeTrue()
+
+            AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).inputStream())
+                .isRevoked(serialNumber).shouldBeTrue()
+        }
+
+        "test cache" - {
+
+            "without HTTP Expiry Header" {
+                var requestCounter = 0
+                val client = MockEngine { _ ->
+                    requestCounter++
+                    respond(withExpiry = false)
+                }.setup()
+                val times = 1000
+                repeat(times) {
+                    AndroidAttestationChecker.RevocationList.fromGoogleServer(client)
+                }
+                requestCounter shouldBe times
+            }
+
+            "without HTTP Expiry Header" {
+                var requestCounter = 0
+                val client = MockEngine { _ ->
+                    requestCounter++
+                    respond(withExpiry = true)
+                }.setup()
+                val times = 1000
+                repeat(times) {
+                    AndroidAttestationChecker.RevocationList.fromGoogleServer(client)
+                }
+                requestCounter shouldBe 1
+            }
         }
 
 
@@ -47,5 +81,17 @@ class RevocationTestFromGoogleSources : FreeSpec({
                 BigInteger.valueOf(0xbadbeef)
             ).shouldBeFalse()
         }
+
+
     }
 })
+
+private fun MockRequestHandleScope.respond(withExpiry: Boolean) = respond(
+    content = ByteReadChannel(File(TEST_STATUS_LIST_PATH).readBytes()),
+    status = HttpStatusCode.OK,
+    headers = if (withExpiry) headersOf(
+        HttpHeaders.ContentType to listOf("application/json"),
+        HttpHeaders.Expires to listOf(GMTDate(getTimeMillis() + 3600_000).toHttpDate())
+    ) else headersOf(HttpHeaders.ContentType to listOf("application/json"))
+)
+

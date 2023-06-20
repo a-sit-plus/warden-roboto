@@ -7,6 +7,7 @@ import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.RootOfTrust
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -209,12 +210,17 @@ class AndroidAttestationChecker @JvmOverloads constructor(
         }
 
         companion object {
+            @JvmStatic
+            private val client by lazy { CIO.create().setup() }
+
             @OptIn(ExperimentalSerializationApi::class)
             @JvmStatic
             fun from(source: InputStream) = RevocationList(json.decodeFromStream(source))
 
             @Throws(Throwable::class)
-            fun fromGoogleServer() =
+            @JvmStatic
+            @JvmOverloads
+            fun fromGoogleServer(client: HttpClient = this.client) =
                 runBlocking {
                     RevocationList(client.get("https://android.googleapis.com/attestation/status").body<JsonObject>())
                 }
@@ -283,9 +289,12 @@ class EternalX509Certificate(private val delegate: X509Certificate) : X509Certif
 }
 
 private val json = Json { ignoreUnknownKeys = true }
-private val client = HttpClient(CIO) {
-    install(HttpCache)
-    install(ContentNegotiation) {
-        json(json)
+
+
+fun HttpClientEngine.setup() =
+    HttpClient(this) {
+        install(HttpCache)
+        install(ContentNegotiation) {
+            json(json)
+        }
     }
-}
