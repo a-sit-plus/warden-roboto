@@ -42,3 +42,7 @@ attestation failed and the library works nicely with pure java
 
 ### 0.8.4
 - ability to configure custom trust anchors
+
+### 0.8.5
+- updated upstream sources
+- cache revocation list

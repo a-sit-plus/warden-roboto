@@ -28,7 +28,7 @@ tasks.getByName<Test>("test") {
 }
 
 group = "at.asitplus"
-version = "0.8.5-SNAPSHOT"
+version = "0.8.5"
 
 sourceSets.main {
     java {
