@@ -15,74 +15,17 @@
 
 package com.google.android.attestation;
 
-import static com.google.android.attestation.AuthorizationList.UserAuthType.FINGERPRINT;
-import static com.google.android.attestation.AuthorizationList.UserAuthType.PASSWORD;
-import static com.google.android.attestation.AuthorizationList.UserAuthType.USER_AUTH_TYPE_ANY;
-import static com.google.android.attestation.AuthorizationList.UserAuthType.USER_AUTH_TYPE_NONE;
-import static com.google.android.attestation.Constants.KM_TAG_ACTIVE_DATE_TIME;
-import static com.google.android.attestation.Constants.KM_TAG_ALGORITHM;
-import static com.google.android.attestation.Constants.KM_TAG_ALLOW_WHILE_ON_BODY;
-import static com.google.android.attestation.Constants.KM_TAG_ALL_APPLICATIONS;
-import static com.google.android.attestation.Constants.KM_TAG_APPLICATION_ID;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_APPLICATION_ID;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_BRAND;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_DEVICE;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_IMEI;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_MANUFACTURER;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_MEID;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_MODEL;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_PRODUCT;
-import static com.google.android.attestation.Constants.KM_TAG_ATTESTATION_ID_SERIAL;
-import static com.google.android.attestation.Constants.KM_TAG_AUTH_TIMEOUT;
-import static com.google.android.attestation.Constants.KM_TAG_BOOT_PATCH_LEVEL;
-import static com.google.android.attestation.Constants.KM_TAG_CREATION_DATE_TIME;
-import static com.google.android.attestation.Constants.KM_TAG_DEVICE_UNIQUE_ATTESTATION;
-import static com.google.android.attestation.Constants.KM_TAG_IDENTITY_CREDENTIAL_KEY;
-import static com.google.android.attestation.Constants.KM_TAG_DIGEST;
-import static com.google.android.attestation.Constants.KM_TAG_EC_CURVE;
-import static com.google.android.attestation.Constants.KM_TAG_KEY_SIZE;
-import static com.google.android.attestation.Constants.KM_TAG_NO_AUTH_REQUIRED;
-import static com.google.android.attestation.Constants.KM_TAG_ORIGIN;
-import static com.google.android.attestation.Constants.KM_TAG_ORIGINATION_EXPIRE_DATE_TIME;
-import static com.google.android.attestation.Constants.KM_TAG_OS_PATCH_LEVEL;
-import static com.google.android.attestation.Constants.KM_TAG_OS_VERSION;
-import static com.google.android.attestation.Constants.KM_TAG_PADDING;
-import static com.google.android.attestation.Constants.KM_TAG_PURPOSE;
-import static com.google.android.attestation.Constants.KM_TAG_ROLLBACK_RESISTANCE;
-import static com.google.android.attestation.Constants.KM_TAG_ROLLBACK_RESISTANT;
-import static com.google.android.attestation.Constants.KM_TAG_ROOT_OF_TRUST;
-import static com.google.android.attestation.Constants.KM_TAG_RSA_PUBLIC_EXPONENT;
-import static com.google.android.attestation.Constants.KM_TAG_TRUSTED_CONFIRMATION_REQUIRED;
-import static com.google.android.attestation.Constants.KM_TAG_TRUSTED_USER_PRESENCE_REQUIRED;
-import static com.google.android.attestation.Constants.KM_TAG_UNLOCKED_DEVICE_REQUIRED;
-import static com.google.android.attestation.Constants.KM_TAG_USAGE_EXPIRE_DATE_TIME;
-import static com.google.android.attestation.Constants.KM_TAG_USER_AUTH_TYPE;
-import static com.google.android.attestation.Constants.KM_TAG_VENDOR_PATCH_LEVEL;
-import static com.google.android.attestation.Constants.UINT32_MAX;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import org.bouncycastle.asn1.*;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.common.collect.ImmutableSet;
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.ASN1OctetString;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.ASN1Set;
-import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DERNull;
-import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERSet;
-import org.bouncycastle.asn1.DERTaggedObject;
+import static com.google.android.attestation.AuthorizationList.UserAuthType.*;
+import static com.google.android.attestation.Constants.*;
 
 /**
  * This data structure contains the key pair's properties themselves, as defined in the Keymaster
@@ -100,6 +43,230 @@ public class AuthorizationList {
         FINGERPRINT,
         USER_AUTH_TYPE_ANY
     }
+
+    /**
+     * Asymmetric algorithms from
+     * https://cs.android.com/android/platform/superproject/+/master:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/Algorithm.aidl
+     */
+    public enum Algorithm {
+        RSA,
+        EC
+    }
+
+    public static final ImmutableMap<Algorithm, Integer> ALGORITHM_TO_ASN1 =
+            ImmutableMap.of(Algorithm.RSA, 1, Algorithm.EC, 3);
+    public static final ImmutableMap<Integer, Algorithm> ASN1_TO_ALGORITHM =
+            ImmutableMap.of(1, Algorithm.RSA, 3, Algorithm.EC);
+
+    /**
+     * From
+     * https://cs.android.com/android/platform/superproject/+/master:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/EcCurve.aidl
+     */
+    public enum EcCurve {
+        P_224,
+        P_256,
+        P_384,
+        P_521,
+        CURVE_25519
+    }
+
+    public static final ImmutableMap<EcCurve, Integer> EC_CURVE_TO_ASN1 =
+            ImmutableMap.of(
+                    EcCurve.P_224,
+                    0,
+                    EcCurve.P_256,
+                    1,
+                    EcCurve.P_384,
+                    2,
+                    EcCurve.P_521,
+                    3,
+                    EcCurve.CURVE_25519,
+                    4);
+    public static final ImmutableMap<Integer, EcCurve> ASN1_TO_EC_CURVE =
+            ImmutableMap.of(
+                    0,
+                    EcCurve.P_224,
+                    1,
+                    EcCurve.P_256,
+                    2,
+                    EcCurve.P_384,
+                    3,
+                    EcCurve.P_521,
+                    4,
+                    EcCurve.CURVE_25519);
+
+    /**
+     * From
+     * https://cs.android.com/android/platform/superproject/+/master:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/PaddingMode.aidl
+     */
+    public enum PaddingMode {
+        NONE,
+        RSA_OAEP,
+        RSA_PSS,
+        RSA_PKCS1_1_5_ENCRYPT,
+        RSA_PKCS1_1_5_SIGN,
+        PKCS7
+    }
+
+    public static final ImmutableMap<PaddingMode, Integer> PADDING_MODE_TO_ASN1 =
+            ImmutableMap.of(
+                    PaddingMode.NONE,
+                    1,
+                    PaddingMode.RSA_OAEP,
+                    2,
+                    PaddingMode.RSA_PSS,
+                    3,
+                    PaddingMode.RSA_PKCS1_1_5_ENCRYPT,
+                    4,
+                    PaddingMode.RSA_PKCS1_1_5_SIGN,
+                    5,
+                    PaddingMode.PKCS7,
+                    64);
+    public static final ImmutableMap<Integer, PaddingMode> ASN1_TO_PADDING_MODE =
+            ImmutableMap.of(
+                    1,
+                    PaddingMode.NONE,
+                    2,
+                    PaddingMode.RSA_OAEP,
+                    3,
+                    PaddingMode.RSA_PSS,
+                    4,
+                    PaddingMode.RSA_PKCS1_1_5_ENCRYPT,
+                    5,
+                    PaddingMode.RSA_PKCS1_1_5_SIGN,
+                    64,
+                    PaddingMode.PKCS7);
+
+    /**
+     * From
+     * https://cs.android.com/android/platform/superproject/+/master:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/Digest.aidl
+     */
+    public enum DigestMode {
+        NONE,
+        MD5,
+        SHA1,
+        SHA_2_224,
+        SHA_2_256,
+        SHA_2_384,
+        SHA_2_512
+    }
+
+    public static final ImmutableMap<DigestMode, Integer> DIGEST_MODE_TO_ASN1 =
+            ImmutableMap.of(
+                    DigestMode.NONE,
+                    0,
+                    DigestMode.MD5,
+                    1,
+                    DigestMode.SHA1,
+                    2,
+                    DigestMode.SHA_2_224,
+                    3,
+                    DigestMode.SHA_2_256,
+                    4,
+                    DigestMode.SHA_2_384,
+                    5,
+                    DigestMode.SHA_2_512,
+                    6);
+    public static final ImmutableMap<Integer, DigestMode> ASN1_TO_DIGEST_MODE =
+            ImmutableMap.of(
+                    0,
+                    DigestMode.NONE,
+                    1,
+                    DigestMode.MD5,
+                    2,
+                    DigestMode.SHA1,
+                    3,
+                    DigestMode.SHA_2_224,
+                    4,
+                    DigestMode.SHA_2_256,
+                    5,
+                    DigestMode.SHA_2_384,
+                    6,
+                    DigestMode.SHA_2_512);
+
+    /**
+     * From
+     * https://cs.android.com/android/platform/superproject/+/master:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/KeyOrigin.aidl
+     */
+    public enum KeyOrigin {
+        GENERATED,
+        DERIVED,
+        IMPORTED,
+        RESERVED,
+        SECURELY_IMPORTED
+    }
+
+    public static final ImmutableMap<KeyOrigin, Integer> KEY_ORIGIN_TO_ASN1 =
+            ImmutableMap.of(
+                    KeyOrigin.GENERATED,
+                    0,
+                    KeyOrigin.IMPORTED,
+                    1,
+                    KeyOrigin.DERIVED,
+                    2,
+                    KeyOrigin.RESERVED,
+                    3,
+                    KeyOrigin.SECURELY_IMPORTED,
+                    4);
+    public static final ImmutableMap<Integer, KeyOrigin> ASN1_TO_KEY_ORIGIN =
+            ImmutableMap.of(
+                    0,
+                    KeyOrigin.GENERATED,
+                    1,
+                    KeyOrigin.IMPORTED,
+                    2,
+                    KeyOrigin.DERIVED,
+                    3,
+                    KeyOrigin.RESERVED,
+                    4,
+                    KeyOrigin.SECURELY_IMPORTED);
+
+    /**
+     * From
+     * https://cs.android.com/android/platform/superproject/+/master:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/KeyPurpose.aidl
+     */
+    public enum OperationPurpose {
+        ENCRYPT,
+        DECRYPT,
+        SIGN,
+        VERIFY,
+        WRAP_KEY,
+        AGREE_KEY,
+        ATTEST_KEY
+    }
+
+    public static final ImmutableMap<OperationPurpose, Integer> OPERATION_PURPOSE_TO_ASN1 =
+            ImmutableMap.of(
+                    OperationPurpose.ENCRYPT,
+                    0,
+                    OperationPurpose.DECRYPT,
+                    1,
+                    OperationPurpose.SIGN,
+                    2,
+                    OperationPurpose.VERIFY,
+                    3,
+                    OperationPurpose.WRAP_KEY,
+                    5,
+                    OperationPurpose.AGREE_KEY,
+                    6,
+                    OperationPurpose.ATTEST_KEY,
+                    7);
+    public static final ImmutableMap<Integer, OperationPurpose> ASN1_TO_OPERATION_PURPOSE =
+            ImmutableMap.of(
+                    0,
+                    OperationPurpose.ENCRYPT,
+                    1,
+                    OperationPurpose.DECRYPT,
+                    2,
+                    OperationPurpose.SIGN,
+                    3,
+                    OperationPurpose.VERIFY,
+                    5,
+                    OperationPurpose.WRAP_KEY,
+                    6,
+                    OperationPurpose.AGREE_KEY,
+                    7,
+                    OperationPurpose.ATTEST_KEY);
 
     public final Optional<Set<Integer>> purpose;
     public final Optional<Integer> algorithm;
@@ -134,6 +301,7 @@ public class AuthorizationList {
     public final Optional<byte[]> attestationIdProduct;
     public final Optional<byte[]> attestationIdSerial;
     public final Optional<byte[]> attestationIdImei;
+    public final Optional<byte[]> attestationIdSecondImei;
     public final Optional<byte[]> attestationIdMeid;
     public final Optional<byte[]> attestationIdManufacturer;
     public final Optional<byte[]> attestationIdModel;
@@ -213,6 +381,9 @@ public class AuthorizationList {
                 findOptionalByteArrayAuthorizationListEntry(authorizationMap, KM_TAG_ATTESTATION_ID_SERIAL);
         this.attestationIdImei =
                 findOptionalByteArrayAuthorizationListEntry(authorizationMap, KM_TAG_ATTESTATION_ID_IMEI);
+        this.attestationIdSecondImei =
+                findOptionalByteArrayAuthorizationListEntry(
+                        authorizationMap, KM_TAG_ATTESTATION_ID_SECOND_IMEI);
         this.attestationIdMeid =
                 findOptionalByteArrayAuthorizationListEntry(authorizationMap, KM_TAG_ATTESTATION_ID_MEID);
         this.attestationIdManufacturer =
@@ -265,6 +436,7 @@ public class AuthorizationList {
         this.attestationIdProduct = Optional.ofNullable(builder.attestationIdProduct);
         this.attestationIdSerial = Optional.ofNullable(builder.attestationIdSerial);
         this.attestationIdImei = Optional.ofNullable(builder.attestationIdImei);
+        this.attestationIdSecondImei = Optional.ofNullable(builder.attestationIdSecondImei);
         this.attestationIdMeid = Optional.ofNullable(builder.attestationIdMeid);
         this.attestationIdManufacturer = Optional.ofNullable(builder.attestationIdManufacturer);
         this.attestationIdModel = Optional.ofNullable(builder.attestationIdModel);
@@ -351,10 +523,7 @@ public class AuthorizationList {
     // Visible for testing.
     static Set<UserAuthType> userAuthTypeToEnum(long userAuthType) {
         if (userAuthType == 0) {
-            Set result = new HashSet<>();
-            result.add(USER_AUTH_TYPE_NONE);
-            return result;
-            //return Set.of(USER_AUTH_TYPE_NONE);
+            return ImmutableSet.of(USER_AUTH_TYPE_NONE);
         }
 
         Set<UserAuthType> result = new HashSet<>();
@@ -434,13 +603,17 @@ public class AuthorizationList {
         addOptionalRootOfTrust(KM_TAG_ROOT_OF_TRUST, this.rootOfTrust, vector);
         addOptionalInteger(KM_TAG_OS_VERSION, this.osVersion, vector);
         addOptionalInteger(KM_TAG_OS_PATCH_LEVEL, this.osPatchLevel, vector);
-        addOptionalOctetString(
-                KM_TAG_ATTESTATION_APPLICATION_ID, this.attestationApplicationIdBytes, vector);
+        addOptionalAttestationApplicationId(
+                KM_TAG_ATTESTATION_APPLICATION_ID,
+                this.attestationApplicationId,
+                this.attestationApplicationIdBytes,
+                vector);
         addOptionalOctetString(KM_TAG_ATTESTATION_ID_BRAND, this.attestationIdBrand, vector);
         addOptionalOctetString(KM_TAG_ATTESTATION_ID_DEVICE, this.attestationIdDevice, vector);
         addOptionalOctetString(KM_TAG_ATTESTATION_ID_PRODUCT, this.attestationIdProduct, vector);
         addOptionalOctetString(KM_TAG_ATTESTATION_ID_SERIAL, this.attestationIdSerial, vector);
         addOptionalOctetString(KM_TAG_ATTESTATION_ID_IMEI, this.attestationIdImei, vector);
+        addOptionalOctetString(KM_TAG_ATTESTATION_ID_SECOND_IMEI, this.attestationIdSecondImei, vector);
         addOptionalOctetString(KM_TAG_ATTESTATION_ID_MEID, this.attestationIdMeid, vector);
         addOptionalOctetString(
                 KM_TAG_ATTESTATION_ID_MANUFACTURER, this.attestationIdManufacturer, vector);
@@ -514,6 +687,24 @@ public class AuthorizationList {
         }
     }
 
+    private static void addOptionalAttestationApplicationId(
+            int tag,
+            Optional<AttestationApplicationId> objectEntry,
+            Optional<byte[]> byteEntry,
+            ASN1EncodableVector vector) {
+        if (objectEntry.isPresent()) {
+            try {
+                vector.add(
+                        new DERTaggedObject(
+                                tag, new DEROctetString(objectEntry.get().toAsn1Sequence().getEncoded())));
+            } catch (Exception e) {
+                addOptionalOctetString(KM_TAG_ATTESTATION_APPLICATION_ID, byteEntry, vector);
+            }
+        } else if (byteEntry.isPresent()) {
+            addOptionalOctetString(KM_TAG_ATTESTATION_APPLICATION_ID, byteEntry, vector);
+        }
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -557,6 +748,7 @@ public class AuthorizationList {
         byte[] attestationIdProduct;
         byte[] attestationIdSerial;
         byte[] attestationIdImei;
+        byte[] attestationIdSecondImei;
         byte[] attestationIdMeid;
         byte[] attestationIdManufacturer;
         byte[] attestationIdModel;
@@ -760,6 +952,12 @@ public class AuthorizationList {
         @CanIgnoreReturnValue
         public Builder setAttestationIdImei(byte[] attestationIdImei) {
             this.attestationIdImei = attestationIdImei;
+            return this;
+        }
+
+        @CanIgnoreReturnValue
+        public Builder setAttestationIdSecondImei(byte[] attestationIdSecondImei) {
+            this.attestationIdSecondImei = attestationIdSecondImei;
             return this;
         }
 

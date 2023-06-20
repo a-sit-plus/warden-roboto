@@ -20,24 +20,36 @@ multiRelease {
     targetVersions(8, 11)
 }
 
+tasks.getByName<Test>("test") {
+    val javaToolchains = project.extensions.getByType<JavaToolchainService>()
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    })
+}
+
 group = "at.asitplus"
-version = "0.8.4"
-
-
+version = "0.8.5-SNAPSHOT"
 
 sourceSets.main {
     java {
         srcDirs("${project.rootDir}/src/main/google")
-        exclude("com/android/example/")
+        exclude(
+            "com/android/example/",
+            "com/google/android/attestation/CertificateRevocationStatus.java"
+        )
     }
 }
 
 sourceSets.getByName("java11") {
     java {
         srcDirs("${project.rootDir}/android-key-attestation/server/src/main/java")
-        exclude("com/android/example/")
+        exclude(
+            "com/android/example/",
+            "com/google/android/attestation/CertificateRevocationStatus.java"
+        )
     }
 }
+
 
 sourceSets.test {
     /* cursed workaround for including this very same source directory in another project when using this project
@@ -48,12 +60,16 @@ sourceSets.test {
 }
 
 dependencies {
+    val ktor_version = "2.3.0"
     testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
+    testImplementation("io.ktor:ktor-client-mock-jvm:$ktor_version")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.73")
-    implementation("com.google.code.gson:gson:2.10")
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("com.google.errorprone:error_prone_annotations:2.3.1")
-    implementation("com.google.guava:guava:30.0-jre")
+    implementation("com.google.guava:guava:31.1-jre")
 }
 
 
