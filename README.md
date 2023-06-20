@@ -7,7 +7,10 @@
 
 This Kotlin library provides a convenient API (a single function, actually) to remotely attest the integrity of an Android device, its OS and a specific application.
 It is intended to be integrated into back-end services requiring authentic, unmodified mobile clients (but it also works in other settings, such as peer-to-peer-scenarios).
-It is based off [code from Google](https://github.com/google/android-key-attestation) (and actually directly integrates it), such that it can easily keep up with upstream for the lower-level functionality.
+
+Full API docs are available <a href="https://a-sit-plus.github.io/android-attestation/android-attestation/at.asitplus.attestation.android/-android-attestation-configuration/index.html" target="_blank">here</a>.
+
+This library's core logic is based off [code from Google](https://github.com/google/android-key-attestation) (and actually directly integrates it), such that it can easily keep up with upstream for the lower-level functionality.
 Because of this, it only targets the JVM, although a KMP rewrite (also targeting JS/Node) is possible.
 This JVM-centricity is also the reason why the function signatures are rather JVM-esque (read: exceptions are thrown on error,
 as done by pretty much every verification function of classes form the `java.security` package).
@@ -15,6 +18,9 @@ as done by pretty much every verification function of classes form the `java.sec
 This library is an integral part of the more comprehensive [Attestation Service](https://github.com/a-sit-plus/attestation-service), which also supports iOS clients and provides
 more idiomatic kotlin interfaces.
 However, if you are only concerned about Android clients, this library provides all functionality needed without unnecessary bloat.
+
+Another useful feature of this library is the possibility to set custom trust anchors and thus use automatically generated 'fake' attestations
+for end-to-end-tests, for example.
 
 ## Development
 
@@ -76,3 +82,14 @@ By default, this is simply a `contentEquals` on the provided challenge vs a refe
 //throws an exception if attestation fails
 val atttestationRecord =  checker.verifyAttestation(attestationCertChain, Date(), challengeFromStep1)
 ```
+
+<br>
+
+---
+<p align="center">
+This project has received funding from the European Union’s Horizon 2020 research and innovation
+programme under grant agreement No 959072.
+</p>
+<p align="center">
+<img src="eu.svg" alt="EU flag">
+</p>
