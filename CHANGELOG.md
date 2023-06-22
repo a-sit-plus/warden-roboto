@@ -46,3 +46,10 @@ attestation failed and the library works nicely with pure java
 ### 0.8.5
 - updated upstream sources
 - cache revocation list
+- internals changes:
+  - Ktor instead of OkHttp
+  - kotlinx.serialization instead of GSon
+  - use A-SIT Plus gradle conventions plugin
+
+## 0.9
+- ability to generate custom attestations for testing by relying on custom trust anchors
