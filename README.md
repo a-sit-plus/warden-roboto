@@ -35,9 +35,7 @@ A noteworthy property of this attestation concept is that no third party needs t
 
 ## Usage
 
-Written in Kotlin, plays nicely with Java (cf. `@JvmOverloads`).
-
-This library is published at maven central.
+Written in Kotlin, plays nicely with Java (cf. `@JvmOverloads`), published at maven central.
 ### Gradle
 
 ```kotlin

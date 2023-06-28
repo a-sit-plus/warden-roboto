@@ -1,5 +1,6 @@
 import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.ktor
+import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 group = "at.asitplus"
 version = "0.8.6-SNAPSHOT"
@@ -75,7 +76,29 @@ val java11Implementation by configurations.getting
 java11Implementation.extendsFrom(configurations.getByName("implementation"))
 
 
-tasks.dokkaHtml { outputDirectory.set(file("${project.rootDir}/docs")) }
+//No, it's not pretty! Yes it's fragile! But it also works perfectly well when run from a GitHub actions and that's what counts
+tasks.dokkaHtml {
+
+    val moduleDesc = File("$rootDir/dokka-tmp.md").also { it.createNewFile() }
+    val readme =
+        File("${rootDir}/README.md").readText().replaceFirst("# ", "")
+    val moduleTitle = readme.lines().first()
+    moduleDesc.writeText("# Module $readme")
+    moduleName.set(moduleTitle)
+
+    dokkaSourceSets {
+        named("main") {
+
+            includes.from(moduleDesc)
+        }
+    }
+    outputDirectory.set(file("${rootDir}/docs"))
+    doLast {
+        rootDir.listFilesOrdered { it.extension.lowercase() == "png" || it.extension.lowercase() == "svg" }
+            .forEach { it.copyTo(File("$rootDir/docs/${it.name}"), overwrite = true) }
+    }
+}
+
 val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
     delete(tasks.dokkaHtml.get().outputDirectory.get())
 }
