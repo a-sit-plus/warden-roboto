@@ -61,6 +61,7 @@ val checker = AndroidAttestationChecker(
         ignoreLeafValidity = false,                 //OPTIONAL, defaults to false. Indicates whether to ignore the timely
                                                     //validity of the leaf certificate (looking at you, Samsung!)
         trustAnchors = listOf(trustedPublicKey),    //OPTIONAL, defaults to google HW attestation key. Useful for automated end-to-end tests
+        verificationSecondsOffset = 0,                 //OPTIONAL, defaults to 0. Tolerance in seconds added to verification date to counter clock drift. Can be negative.
     )
 )
 ```

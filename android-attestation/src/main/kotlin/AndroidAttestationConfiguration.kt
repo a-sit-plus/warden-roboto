@@ -93,7 +93,13 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
     val trustAnchors: List<PublicKey> = listOf(
         KeyFactory.getInstance("RSA")
             .generatePublic(X509EncodedKeySpec(Base64.getDecoder().decode(GOOGLE_ROOT_CA_PUB_KEY)))
-    )
+    ),
+
+    /**
+     *  Tolerance in seconds added to verification date 
+     *
+     */
+    val verificationSecondsOffset: Int = 0
 ) {
 
     /**
