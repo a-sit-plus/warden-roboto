@@ -99,7 +99,7 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      *  Tolerance in seconds added to verification date 
      *
      */
-    val verificationTimeOffset: Int = 0
+    val verificationSecondsOffset: Int = 0
 ) {
 
     /**

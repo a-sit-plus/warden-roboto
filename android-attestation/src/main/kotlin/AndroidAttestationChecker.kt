@@ -181,9 +181,9 @@ class AndroidAttestationChecker @JvmOverloads constructor(
         expectedChallenge: ByteArray
     ): ParsedAttestationRecord {
         val calendar = Calendar.getInstance()
-        calendar.setTime(verificationDate)
-        calendar.add(Calendar.SECOND, attestationConfiguration.verificationTimeOffset)
-        certificates.verifyCertificateChain(calendar.getTime())
+        calendar.time = verificationDate
+        calendar.add(Calendar.SECOND, attestationConfiguration.verificationSecondsOffset)
+        certificates.verifyCertificateChain(calendar.time)
 
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
         if (!verifyChallenge(
