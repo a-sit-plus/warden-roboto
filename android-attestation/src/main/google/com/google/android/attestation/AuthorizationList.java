@@ -109,33 +109,23 @@ public class AuthorizationList {
     }
 
     public static final ImmutableMap<PaddingMode, Integer> PADDING_MODE_TO_ASN1 =
-            ImmutableMap.of(
-                    PaddingMode.NONE,
-                    1,
-                    PaddingMode.RSA_OAEP,
-                    2,
-                    PaddingMode.RSA_PSS,
-                    3,
-                    PaddingMode.RSA_PKCS1_1_5_ENCRYPT,
-                    4,
-                    PaddingMode.RSA_PKCS1_1_5_SIGN,
-                    5,
-                    PaddingMode.PKCS7,
-                    64);
+            ImmutableMap.<PaddingMode, Integer>builder()
+                    .put(PaddingMode.NONE, 1)
+                    .put(PaddingMode.RSA_OAEP, 2)
+                    .put(PaddingMode.RSA_PSS, 3)
+                    .put(PaddingMode.RSA_PKCS1_1_5_ENCRYPT, 4)
+                    .put(PaddingMode.RSA_PKCS1_1_5_SIGN, 5)
+                    .put(PaddingMode.PKCS7, 64)
+                    .build();
     public static final ImmutableMap<Integer, PaddingMode> ASN1_TO_PADDING_MODE =
-            ImmutableMap.of(
-                    1,
-                    PaddingMode.NONE,
-                    2,
-                    PaddingMode.RSA_OAEP,
-                    3,
-                    PaddingMode.RSA_PSS,
-                    4,
-                    PaddingMode.RSA_PKCS1_1_5_ENCRYPT,
-                    5,
-                    PaddingMode.RSA_PKCS1_1_5_SIGN,
-                    64,
-                    PaddingMode.PKCS7);
+            ImmutableMap.<Integer, PaddingMode>builder()
+                    .put(1, PaddingMode.NONE)
+                    .put(2, PaddingMode.RSA_OAEP)
+                    .put(3, PaddingMode.RSA_PSS)
+                    .put(4, PaddingMode.RSA_PKCS1_1_5_ENCRYPT)
+                    .put(5, PaddingMode.RSA_PKCS1_1_5_SIGN)
+                    .put(64, PaddingMode.PKCS7)
+                    .build();
 
     /**
      * From
@@ -152,37 +142,25 @@ public class AuthorizationList {
     }
 
     public static final ImmutableMap<DigestMode, Integer> DIGEST_MODE_TO_ASN1 =
-            ImmutableMap.of(
-                    DigestMode.NONE,
-                    0,
-                    DigestMode.MD5,
-                    1,
-                    DigestMode.SHA1,
-                    2,
-                    DigestMode.SHA_2_224,
-                    3,
-                    DigestMode.SHA_2_256,
-                    4,
-                    DigestMode.SHA_2_384,
-                    5,
-                    DigestMode.SHA_2_512,
-                    6);
+            ImmutableMap.<DigestMode, Integer>builder()
+                    .put(DigestMode.NONE, 0)
+                    .put(DigestMode.MD5, 1)
+                    .put(DigestMode.SHA1, 2)
+                    .put(DigestMode.SHA_2_224, 3)
+                    .put(DigestMode.SHA_2_256, 4)
+                    .put(DigestMode.SHA_2_384, 5)
+                    .put(DigestMode.SHA_2_512, 6)
+                    .build();
     public static final ImmutableMap<Integer, DigestMode> ASN1_TO_DIGEST_MODE =
-            ImmutableMap.of(
-                    0,
-                    DigestMode.NONE,
-                    1,
-                    DigestMode.MD5,
-                    2,
-                    DigestMode.SHA1,
-                    3,
-                    DigestMode.SHA_2_224,
-                    4,
-                    DigestMode.SHA_2_256,
-                    5,
-                    DigestMode.SHA_2_384,
-                    6,
-                    DigestMode.SHA_2_512);
+            ImmutableMap.<Integer, DigestMode>builder()
+                    .put(0,DigestMode.NONE)
+                    .put(1,DigestMode.MD5)
+                    .put(2,DigestMode.SHA1)
+                    .put(3,DigestMode.SHA_2_224)
+                    .put(4,DigestMode.SHA_2_256)
+                    .put(5,DigestMode.SHA_2_384)
+                    .put(6,DigestMode.SHA_2_512)
+                    .build();
 
     /**
      * From
@@ -236,37 +214,25 @@ public class AuthorizationList {
     }
 
     public static final ImmutableMap<OperationPurpose, Integer> OPERATION_PURPOSE_TO_ASN1 =
-            ImmutableMap.of(
-                    OperationPurpose.ENCRYPT,
-                    0,
-                    OperationPurpose.DECRYPT,
-                    1,
-                    OperationPurpose.SIGN,
-                    2,
-                    OperationPurpose.VERIFY,
-                    3,
-                    OperationPurpose.WRAP_KEY,
-                    5,
-                    OperationPurpose.AGREE_KEY,
-                    6,
-                    OperationPurpose.ATTEST_KEY,
-                    7);
+            ImmutableMap.<OperationPurpose, Integer>builder()
+                    .put(OperationPurpose.ENCRYPT, 0)
+                    .put(OperationPurpose.DECRYPT,1)
+                    .put(OperationPurpose.SIGN,2)
+                    .put(OperationPurpose.VERIFY,3)
+                    .put(OperationPurpose.WRAP_KEY,5)
+                    .put(OperationPurpose.AGREE_KEY,6)
+                    .put(OperationPurpose.ATTEST_KEY,7)
+                    .build();
     public static final ImmutableMap<Integer, OperationPurpose> ASN1_TO_OPERATION_PURPOSE =
-            ImmutableMap.of(
-                    0,
-                    OperationPurpose.ENCRYPT,
-                    1,
-                    OperationPurpose.DECRYPT,
-                    2,
-                    OperationPurpose.SIGN,
-                    3,
-                    OperationPurpose.VERIFY,
-                    5,
-                    OperationPurpose.WRAP_KEY,
-                    6,
-                    OperationPurpose.AGREE_KEY,
-                    7,
-                    OperationPurpose.ATTEST_KEY);
+            ImmutableMap.<Integer, OperationPurpose>builder()
+                    .put(0, OperationPurpose.ENCRYPT)
+                    .put(1, OperationPurpose.DECRYPT)
+                    .put(2, OperationPurpose.SIGN)
+                    .put(3, OperationPurpose.VERIFY)
+                    .put(5, OperationPurpose.WRAP_KEY)
+                    .put(6, OperationPurpose.AGREE_KEY)
+                    .put(7, OperationPurpose.ATTEST_KEY)
+                    .build();
 
     public final Optional<Set<Integer>> purpose;
     public final Optional<Integer> algorithm;

@@ -65,7 +65,7 @@ dependencies {
     implementation(ktor("serialization-kotlinx-json"))
     implementation(ktor("client-cio"))
     implementation("com.google.errorprone:error_prone_annotations:2.3.1")
-    implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.google.guava:guava:32.1.2-jre")
 }
 
 
