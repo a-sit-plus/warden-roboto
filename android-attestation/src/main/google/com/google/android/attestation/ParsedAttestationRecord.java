@@ -205,27 +205,23 @@ public class ParsedAttestationRecord {
   }
 
   public static final ImmutableMap<AttestationVersion, Integer> ATTESTATION_VERSION_TO_ASN1 =
-      ImmutableMap.of(
-          AttestationVersion.KEYMASTER_2_0,
-          1,
-          AttestationVersion.KEYMASTER_3_0,
-          2,
-          AttestationVersion.KEYMASTER_4_0,
-          3,
-          AttestationVersion.KEYMASTER_4_1,
-          4,
-          AttestationVersion.KEYMINT_1_0,
-          100,
-          AttestationVersion.KEYMINT_2_0,
-          200);
+      ImmutableMap.<AttestationVersion, Integer>builder()
+              .put(AttestationVersion.KEYMASTER_2_0, 1)
+              .put(AttestationVersion.KEYMASTER_3_0, 2)
+              .put(AttestationVersion.KEYMASTER_4_0, 3)
+              .put(AttestationVersion.KEYMASTER_4_1, 4)
+              .put(AttestationVersion.KEYMINT_1_0, 100)
+              .put(AttestationVersion.KEYMINT_2_0, 200)
+              .build();
   public static final ImmutableMap<Integer, AttestationVersion> ASN1_TO_ATTESTATION_VERSION =
-      ImmutableMap.of(
-          1, AttestationVersion.KEYMASTER_2_0,
-          2, AttestationVersion.KEYMASTER_3_0,
-          3, AttestationVersion.KEYMASTER_4_0,
-          4, AttestationVersion.KEYMASTER_4_1,
-          100, AttestationVersion.KEYMINT_1_0,
-          200, AttestationVersion.KEYMINT_2_0);
+      ImmutableMap.<Integer, AttestationVersion>builder()
+              .put(1, AttestationVersion.KEYMASTER_2_0)
+              .put(2, AttestationVersion.KEYMASTER_3_0)
+              .put(3, AttestationVersion.KEYMASTER_4_0)
+              .put(4, AttestationVersion.KEYMASTER_4_1)
+              .put(100, AttestationVersion.KEYMINT_1_0)
+              .put(200, AttestationVersion.KEYMINT_2_0)
+              .build();
 
   /** This indicates the version of the key mint or key master feature. */
   public enum KeyMintVersion {
@@ -240,32 +236,26 @@ public class ParsedAttestationRecord {
   }
 
   public static final ImmutableMap<KeyMintVersion, Integer> KEYMINT_VERSION_TO_ASN1 =
-      ImmutableMap.of(
-          KeyMintVersion.KEYMASTER_0_2_OR_3,
-          0,
-          KeyMintVersion.KEYMASTER_1_0,
-          1,
-          KeyMintVersion.KEYMASTER_2_0,
-          2,
-          KeyMintVersion.KEYMASTER_3_0,
-          3,
-          KeyMintVersion.KEYMASTER_4_0,
-          4,
-          KeyMintVersion.KEYMASTER_4_1,
-          41,
-          KeyMintVersion.KEYMINT_1_0,
-          100,
-          KeyMintVersion.KEYMINT_2_0,
-          200);
+      ImmutableMap.<KeyMintVersion, Integer>builder()
+              .put(KeyMintVersion.KEYMASTER_0_2_OR_3, 0)
+              .put(KeyMintVersion.KEYMASTER_1_0, 1)
+              .put(KeyMintVersion.KEYMASTER_2_0, 2)
+              .put(KeyMintVersion.KEYMASTER_3_0, 3)
+              .put(KeyMintVersion.KEYMASTER_4_0, 4)
+              .put(KeyMintVersion.KEYMASTER_4_1, 41)
+              .put(KeyMintVersion.KEYMINT_1_0, 100)
+              .put(KeyMintVersion.KEYMINT_2_0, 200)
+              .build();
 
   public static final ImmutableMap<Integer, KeyMintVersion> ASN1_TO_KEYMINT_VERSION =
-      ImmutableMap.of(
-          0, KeyMintVersion.KEYMASTER_0_2_OR_3,
-          1, KeyMintVersion.KEYMASTER_1_0,
-          2, KeyMintVersion.KEYMASTER_2_0,
-          3, KeyMintVersion.KEYMASTER_3_0,
-          4, KeyMintVersion.KEYMASTER_4_0,
-          41, KeyMintVersion.KEYMASTER_4_1,
-          100, KeyMintVersion.KEYMINT_1_0,
-          200, KeyMintVersion.KEYMINT_2_0);
+      ImmutableMap.<Integer, KeyMintVersion>builder()
+              .put(0, KeyMintVersion.KEYMASTER_0_2_OR_3)
+              .put(1, KeyMintVersion.KEYMASTER_1_0)
+              .put(2, KeyMintVersion.KEYMASTER_2_0)
+              .put(3, KeyMintVersion.KEYMASTER_3_0)
+              .put(4, KeyMintVersion.KEYMASTER_4_0)
+              .put(41, KeyMintVersion.KEYMASTER_4_1)
+              .put(100, KeyMintVersion.KEYMINT_1_0)
+              .put(200, KeyMintVersion.KEYMINT_2_0)
+              .build();
 }
