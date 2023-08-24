@@ -46,3 +46,7 @@ attestation failed and the library works nicely with pure java
 ### 0.8.5
 - updated upstream sources
 - cache revocation list
+
+## 0.9.0
+- ability to add offset to time of verification (thanks @rolicz)
+- fix Java 8 builds (thanks @rolicz)
