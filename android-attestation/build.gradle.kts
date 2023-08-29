@@ -44,6 +44,9 @@ sourceSets.getByName("java11") {
             "com/android/example/",
             "com/google/android/attestation/CertificateRevocationStatus.java"
         )
+        dependencies {
+            implementation("org.jspecify:jspecify:0.2.0")
+        }
     }
 }
 
@@ -55,6 +58,7 @@ sourceSets.test {
         srcDir("src/test/kotlin/data")
     }
 }
+
 
 dependencies {
 
@@ -72,9 +76,9 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 val java11Implementation by configurations.getting
 java11Implementation.extendsFrom(configurations.getByName("implementation"))
-
 
 //No, it's not pretty! Yes it's fragile! But it also works perfectly well when run from a GitHub actions and that's what counts
 tasks.dokkaHtml {
@@ -114,9 +118,7 @@ val sourcesJar by tasks.registering(Jar::class) {
     from(sourceSets.main.get().allSource)
 }
 
-repositories {
-    mavenCentral()
-}
+
 
 publishing {
     publications {
