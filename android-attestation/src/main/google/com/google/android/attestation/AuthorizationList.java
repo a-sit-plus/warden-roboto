@@ -422,7 +422,7 @@ public class AuthorizationList {
         Map<Integer, ASN1Primitive> authorizationMap = new HashMap<>();
         for (ASN1Encodable entry : authorizationList) {
             ASN1TaggedObject taggedEntry = (ASN1TaggedObject) entry;
-            authorizationMap.put(taggedEntry.getTagNo(), taggedEntry.getObject());
+            authorizationMap.put(taggedEntry.getTagNo(), taggedEntry.getBaseObject().toASN1Primitive());
         }
         return authorizationMap;
     }

@@ -2,8 +2,8 @@ import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
-group = "at.asitplus"
-version = "0.9.0"
+
+version = "0.9.1"
 
 plugins {
     kotlin("jvm")
