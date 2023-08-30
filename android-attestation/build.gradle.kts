@@ -2,7 +2,7 @@ import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
-
+group = "at.asitplus"
 version = "0.9.1"
 
 plugins {
@@ -154,14 +154,6 @@ publishing {
                     url.set("https://github.com/a-sit-plus/android-attestation")
                 }
             }
-        }
-    }
-    repositories {
-        mavenLocal()
-        maven {
-            url = uri(layout.projectDirectory.dir("..").dir("repo"))
-            name = "local"
-            signing.isRequired = false
         }
     }
 }
