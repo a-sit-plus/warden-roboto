@@ -3,53 +3,22 @@ import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 group = "at.asitplus"
-version = "0.9.1"
+version = "0.9.2"
 
 plugins {
     kotlin("jvm")
     id("maven-publish")
     id("org.jetbrains.dokka")
     id("signing")
-    id("me.champeau.mrjar") version "0.1"
     id("at.asitplus.gradle.conventions")
 }
 
-
-multiRelease {
-    targetVersions(8, 11)
-}
-
-tasks.getByName<Test>("test") {
-    val javaToolchains = project.extensions.getByType<JavaToolchainService>()
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    })
-}
-
-
 sourceSets.main {
     java {
-        srcDirs("${projectDir}/src/main/google")
-        exclude(
-            "com/android/example/",
-            "com/google/android/attestation/CertificateRevocationStatus.java"
-        )
-    }
-}
-
-sourceSets.getByName("java11") {
-    java {
         srcDirs("${project.rootDir}/android-key-attestation/server/src/main/java")
-        exclude(
-            "com/android/example/",
-            "com/google/android/attestation/CertificateRevocationStatus.java"
-        )
-        dependencies {
-            implementation("org.jspecify:jspecify:0.2.0")
-        }
+        exclude("com/android/example/", "com/google/android/attestation/CertificateRevocationStatus.java")
     }
 }
-
 
 sourceSets.test {
     /* cursed workaround for including this very same source directory in another project when using this project
@@ -57,28 +26,33 @@ sourceSets.test {
     kotlin {
         srcDir("src/test/kotlin/data")
     }
+    resources {
+        srcDirs(
+            rootProject.layout.projectDirectory.dir("android-key-attestation").dir("server").dir("src").dir("test")
+                .dir("resources"),
+            "src/test/resources"
+        )
+    }
 }
 
 
 dependencies {
 
     testImplementation(ktor("client-mock"))
-    implementation(bouncycastle("bcpkix","jdk18on"))
+    implementation(bouncycastle("bcpkix", "jdk18on"))
     implementation(ktor("client-core"))
     implementation(ktor("client-content-negotiation"))
     implementation(ktor("serialization-kotlinx-json"))
     implementation(ktor("client-cio"))
     implementation("com.google.errorprone:error_prone_annotations:2.3.1")
     implementation("com.google.guava:guava:32.1.2-jre")
+    implementation("org.jspecify:jspecify:0.2.0")
 }
 
 
 tasks.test {
     useJUnitPlatform()
 }
-
-val java11Implementation by configurations.getting
-java11Implementation.extendsFrom(configurations.getByName("implementation"))
 
 //No, it's not pretty! Yes it's fragile! But it also works perfectly well when run from a GitHub actions and that's what counts
 tasks.dokkaHtml {
