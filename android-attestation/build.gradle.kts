@@ -3,7 +3,7 @@ import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 group = "at.asitplus"
-version = "0.9.2"
+version = "0.9.3"
 
 plugins {
     kotlin("jvm")
@@ -46,6 +46,7 @@ dependencies {
     implementation(ktor("client-cio"))
     implementation("com.google.errorprone:error_prone_annotations:2.3.1")
     api("com.google.guava:guava:32.1.2-jre")
+    api(kotlin("stdlib"))
     implementation("org.jspecify:jspecify:0.2.0")
 }
 

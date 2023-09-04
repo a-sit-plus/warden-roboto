@@ -54,3 +54,7 @@ attestation failed and the library works nicely with pure java
 ### 0.9.2
 - drop broken java 8 target
 - update sources from upstream
+
+### 0.9.3
+- add guava to API for java interop
+- kotlin-stdlib API dependency for java interop
