@@ -19,7 +19,7 @@ data class PatchLevel(val year: Int, val month: Int) {
 /**
  * Main Android Key attestation configuration class serving as ground truth for all key attestation verifications.
  *
- * @param packageName Android app package name (e.g. `at.asitplus.demo`)
+ * @param packageNames Android app package name (e.g. `at.asitplus.demo`)
  * @param signatureDigests SHA-256 digests of signature certificates used to sign the APK. This is a Google cloud signing
  * certificate for production play store releases. Being able to specify multiple digests makes it easy to use development
  * builds and production builds in parallel.
@@ -32,27 +32,15 @@ data class PatchLevel(val year: Int, val month: Int) {
  * @param requireRollbackResistance Unsupported by most devices.
  * See [Official Documentation](https://source.android.com/docs/security/features/keystore/implementer-ref#rollback_resistance)
  * @param ignoreLeafValidity Whether to ignore the timely validity of the leaf certificate (looking at you, Samsung!)
- * @param trustAnchors Manually specify the trust anchor for HW-attested certificate chains. Defaults to google HW attestation key.
+ * @param hardwareAttestationTrustAnchors Manually specify the trust anchor for HW-attested certificate chains. Defaults to google HW attestation key.
  * Overriding this list is useful for automated end-to-end tests, for example.
  *
  */
 
 class AndroidAttestationConfiguration @JvmOverloads constructor(
-    /**
-     * Android app package name (e.g. `at.asitplus.demo`)
-     */
-    val packageName: String,
-    /**
-     * SHA-256 digests of signature certificates used to sign the APK. This is a Google cloud signing certificate for
-     * production play store releases.
-     * Being able to specify multiple digests makes it easy to use development builds and production builds in parallel
-     */
-    val signatureDigests: List<ByteArray>,
 
-    /**
-     * optional parameter. If set, attestation enforces application version to be greater or equal to this parameter
-     */
-    val appVersion: Int? = null,
+
+    val applications: List<AppData>,
 
     /**
      * optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
@@ -90,13 +78,30 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      * Manually specify the trust anchor for HW-attested certificate chains. Defaults to google HW attestation key.
      * Overriding this list is useful for automated end-to-end tests, for example.
      */
-    val trustAnchors: List<PublicKey> = listOf(
+    val hardwareAttestationTrustAnchors: List<PublicKey> = listOf(
         KeyFactory.getInstance("RSA")
             .generatePublic(X509EncodedKeySpec(Base64.getDecoder().decode(GOOGLE_ROOT_CA_PUB_KEY)))
     ),
 
     /**
-     *  Tolerance in seconds added to verification date 
+     * Manually specify the trust anchor for HW-attested certificate chains. Defaults to google HW attestation key.
+     * Overriding this list is useful for automated end-to-end tests, for example.
+     */
+    val softwareAttestationTrustAnchors: List<PublicKey> = listOf(
+        KeyFactory.getInstance("EC")
+            .generatePublic(
+                X509EncodedKeySpec(Base64.getDecoder().decode(SoftwareAttestationChecker.GOOGLE_SOFTWARE_EC_ROOT))
+            ),
+        KeyFactory.getInstance("RSA")
+            .generatePublic(
+                X509EncodedKeySpec(
+                    Base64.getDecoder().decode(SoftwareAttestationChecker.GOOGLE_SOFTWARE_RSA_ROOT)
+                )
+            )
+    ),
+
+    /**
+     *  Tolerance in seconds added to verification date
      *
      */
     val verificationSecondsOffset: Int = 0
@@ -107,8 +112,32 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      */
     val osPatchLevel: Int? = patchLevel?.asSingleInt
 
+    class AppData(
+        /**
+         * Android app package name (e.g. `at.asitplus.demo`)
+         */
+        val packageName: String,
+        /**
+         * SHA-256 digests of signature certificates used to sign the APK. This is a Google cloud signing certificate for
+         * production play store releases.
+         * Being able to specify multiple digests makes it easy to use development builds and production builds in parallel
+         */
+        val signatureDigests: List<ByteArray>,
+
+        /**
+         * optional parameter. If set, attestation enforces application version to be greater or equal to this parameter
+         */
+        val appVersion: Int? = null,
+    ) {
+        init {
+            if (signatureDigests.isEmpty()) throw AttestationException("No signature digests specified")
+        }
+    }
+
     init {
-        if (trustAnchors.isEmpty()) throw AttestationException("No trust anchors configured")
-        if (signatureDigests.isEmpty()) throw AttestationException("No signature digests specified")
+        if (hardwareAttestationTrustAnchors.isEmpty() && softwareAttestationTrustAnchors.isEmpty()) throw AttestationException(
+            "No trust anchors configured"
+        )
+        if (applications.isEmpty()) throw AttestationException("No apps configured")
     }
 }

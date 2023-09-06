@@ -1,5 +1,6 @@
 package at.asitplus.attestation.data
 
+import com.google.android.attestation.ParsedAttestationRecord
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.cert.CertificateFactory
@@ -37,3 +38,7 @@ val AttestationData.attestationCertChain: List<X509Certificate>
             .generateCertificate(mimeDecoder.decode(it).inputStream()) as X509Certificate
 
     }
+val AttestationData.androidAttestationRecord: ParsedAttestationRecord?
+    get() = if (attestationProofB64.size > 2)
+        ParsedAttestationRecord.createParsedAttestationRecord(attestationCertChain)
+    else null

@@ -402,11 +402,15 @@ fun attestationService(
     requireStrongBox: Boolean = false,
     unlockedBootloaderAllowed: Boolean = false,
     requireRollbackResistance: Boolean = false
-) = AndroidAttestationChecker(
+) = HardwareAttestationChecker(
     AndroidAttestationConfiguration(
-        packageName = androidPackageName,
-        signatureDigests = androidAppSignatureDigest,
-        appVersion = androidAppVersion,
+        listOf(
+            AndroidAttestationConfiguration.AppData(
+                packageName = androidPackageName,
+                signatureDigests = androidAppSignatureDigest,
+                appVersion = androidAppVersion
+            )
+        ),
         androidVersion = androidVersion,
         patchLevel = androidPatchLevel,
         requireStrongBox = requireStrongBox,

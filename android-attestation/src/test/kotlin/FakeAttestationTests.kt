@@ -27,17 +27,18 @@ class FakeAttestationTests : FreeSpec({
             androidPatchLevel = patchLevel.asSingleInt
         )
 
-        val checker = AndroidAttestationChecker(
+        val checker = HardwareAttestationChecker(
             AndroidAttestationConfiguration(
-                packageName = packageName,
-                signatureDigests = listOf(signatureDigest),
-                appVersion = appVersion,
+                listOf(AndroidAttestationConfiguration.AppData(
+                    packageName = packageName,
+                    signatureDigests = listOf(signatureDigest),
+                    appVersion = appVersion)),
                 androidVersion = androidVersion,
                 patchLevel = patchLevel,
                 requireStrongBox = false,
                 bootloaderUnlockAllowed = false,
                 ignoreLeafValidity = false,
-                trustAnchors = listOf(attestationProof.last().publicKey)
+                hardwareAttestationTrustAnchors = listOf(attestationProof.last().publicKey)
             )
         )
 
@@ -119,11 +120,15 @@ class FakeAttestationTests : FreeSpec({
         }
 
         "and the fake attestation must not verify against the google root key" {
-            val trustedChecker = AndroidAttestationChecker(
+            val trustedChecker = HardwareAttestationChecker(
                 AndroidAttestationConfiguration(
-                    packageName = packageName,
-                    signatureDigests = listOf(signatureDigest),
-                    appVersion = appVersion,
+                    listOf(
+                        AndroidAttestationConfiguration.AppData(
+                            packageName = packageName,
+                            signatureDigests = listOf(signatureDigest),
+                            appVersion = appVersion,
+                        )
+                    ),
                     androidVersion = androidVersion,
                     patchLevel = patchLevel,
                     requireStrongBox = false,

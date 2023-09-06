@@ -48,6 +48,7 @@ dependencies {
     api("com.google.guava:guava:32.1.2-jre")
     api(kotlin("stdlib"))
     implementation("org.jspecify:jspecify:0.2.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 
