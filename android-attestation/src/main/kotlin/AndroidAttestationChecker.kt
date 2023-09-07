@@ -6,10 +6,6 @@ import at.asitplus.attestation.android.exceptions.RevocationException
 import com.google.android.attestation.AuthorizationList
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.RootOfTrust
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializer
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -18,6 +14,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -34,7 +31,7 @@ import java.util.*
 
 abstract class AndroidAttestationChecker(
     protected val attestationConfiguration: AndroidAttestationConfiguration,
-    private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean = { expected, actual -> expected contentEquals actual }
+    private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean
 ) {
 
     @Throws(CertificateInvalidException::class, RevocationException::class)
@@ -114,15 +111,18 @@ abstract class AndroidAttestationChecker(
 
 
     @Throws(AttestationException::class)
-    protected abstract fun ParsedAttestationRecord.verifyAndroidVersion()
-    protected fun AuthorizationList.verifyAndroidVersion() {
+    protected abstract fun ParsedAttestationRecord.verifyAndroidVersion(
+        versionOverride: Int? = null,
+        osPatchLevel: Int?
+    )
+    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: Int?) {
         runCatching {
 
-            attestationConfiguration.androidVersion?.let {
+           (versionOverride?: attestationConfiguration.androidVersion)?.let {
                 if ((osVersion.get()) < it) throw AttestationException("Android version not supported")
             }
 
-            attestationConfiguration.osPatchLevel?.let {
+            (patchLevel?:attestationConfiguration.osPatchLevel)?.let {
                 if ((osPatchLevel.get()) < it) throw AttestationException("Patch level not supported")
             }
         }.onFailure {
@@ -192,13 +192,13 @@ abstract class AndroidAttestationChecker(
         parsedAttestationRecord.verifySecurityLevel()
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()
-        parsedAttestationRecord.verifyAndroidVersion()
-        attestationConfiguration.applications.map { app ->
+
+        val attestedApp = attestationConfiguration.applications.associateWith { app ->
             runCatching { parsedAttestationRecord.verifyApplication(app) }
         }.let {
-            it.firstOrNull { result -> result.isSuccess } ?: it.first().exceptionOrNull()?.let { throw it }
-
-        }
+            it.entries.firstOrNull { (_, result) -> result.isSuccess } ?: it.values.first().exceptionOrNull()!!.let { throw it }
+        }.key
+        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.osPatchLevel)
         return parsedAttestationRecord
     }
 
@@ -306,26 +306,3 @@ fun HttpClientEngine.setup() =
             json(json)
         }
     }
-
-fun ParsedAttestationRecord.prettyPrint() = gson.toJson(this)
-
-@OptIn(ExperimentalStdlibApi::class)
-private val gson: Gson = GsonBuilder().apply {
-
-    registerTypeAdapter(ByteArray::class.java,
-        JsonSerializer<ByteArray> { src, _, _ ->
-            JsonPrimitive(src?.toHexString(HexFormat.UpperCase))
-        }).registerTypeAdapter(PublicKey::class.java,
-        JsonSerializer<PublicKey> { src, _, _ ->
-            com.google.gson.JsonObject().apply {
-                add("algorithm", JsonPrimitive(src.algorithm))
-                add("format", JsonPrimitive(src.format))
-                add("encoded", JsonPrimitive(src.encoded.toHexString(HexFormat.UpperCase)))
-            }
-        })
-    registerTypeAdapter(Optional::class.java, JsonSerializer<Optional<*>> { src, _, ctx ->
-        if (src.isEmpty) null
-        else ctx.serialize(src.get())
-    })
-    setPrettyPrinting()
-}.create()

@@ -38,7 +38,7 @@ class FakeAttestationTests : FreeSpec({
                 requireStrongBox = false,
                 bootloaderUnlockAllowed = false,
                 ignoreLeafValidity = false,
-                hardwareAttestationTrustAnchors = listOf(attestationProof.last().publicKey)
+                hardwareAttestationTrustAnchors = setOf(attestationProof.last().publicKey)
             )
         )
 
@@ -105,7 +105,7 @@ class FakeAttestationTests : FreeSpec({
         )
 
         "should work when the fake cert is configured as trust anchor" {
-            val record = checker.verifyAttestation(
+            checker.verifyAttestation(
                 certificates = attestationProof,
                 expectedChallenge = challenge
             )

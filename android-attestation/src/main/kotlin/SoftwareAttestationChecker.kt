@@ -18,6 +18,7 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
     verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean = { expected, actual -> expected contentEquals actual }
 ) : AndroidAttestationChecker(attestationConfiguration, verifyChallenge) {
     init {
+        if (!attestationConfiguration.enableSoftwareAttestation) throw AttestationException("Software attestation is disabled!")
         if (attestationConfiguration.softwareAttestationTrustAnchors.isEmpty()) throw AttestationException("No software attestation trust anchors configured")
     }
 
@@ -43,10 +44,13 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
     override val trustAnchors: Collection<PublicKey> = attestationConfiguration.softwareAttestationTrustAnchors
 
     @Throws(AttestationException::class)
-    override fun ParsedAttestationRecord.verifyAndroidVersion() = softwareEnforced.verifyAndroidVersion()
+    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: Int?) =
+        softwareEnforced.verifyAndroidVersion(versionOverride, osPatchLevel)
 
     @Throws(AttestationException::class)
-    override fun ParsedAttestationRecord.verifyBootStateAndSystemImage() = softwareEnforced.verifySystemLocked()
+    override fun ParsedAttestationRecord.verifyBootStateAndSystemImage() {
+        //impossible
+    }
 
     @Throws(AttestationException::class)
     override fun ParsedAttestationRecord.verifyRollbackResistance() = softwareEnforced.verifyRollbackResistance()

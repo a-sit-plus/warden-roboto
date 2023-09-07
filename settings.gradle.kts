@@ -13,3 +13,4 @@ pluginManagement {
 }
 
 include("android-attestation")
+include("attestation-diag")

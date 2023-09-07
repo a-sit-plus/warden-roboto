@@ -48,7 +48,8 @@ dependencies {
     api("com.google.guava:guava:32.1.2-jre")
     api(kotlin("stdlib"))
     implementation("org.jspecify:jspecify:0.2.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+
+    testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
 }
 
 
