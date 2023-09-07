@@ -5,23 +5,27 @@ import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.data.AttestationData
 import at.asitplus.attestation.data.attestationCertChain
 import com.google.android.attestation.ParsedAttestationRecord
+import com.google.android.attestation.ParsedAttestationRecord.SecurityLevel
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.util.*
 import org.bouncycastle.util.encoders.Base64
 import java.sql.Date
 import java.time.Duration
 
 
+@OptIn(ExperimentalStdlibApi::class)
 class AttestationTests : FreeSpec() {
 
 
     init {
         "TODO" {
-            println("we still need unlocked bootloader testcases and non-hw-attested ones!")
+            println("we still need unlocked bootloader testcases!")
         }
 
-        "No HW attestation support" {
+        "Software attestation support" - {
             AttestationData(
                 "Android Emulator RSA",
                 challengeB64 = "dRGIuJhE8j0t6lYbVfusgE17CWvGWXYpnTxcx0BZ87E=",
@@ -71,7 +75,7 @@ class AttestationTests : FreeSpec() {
                     9mL1J1IXvmM=    
                     """
                 ),
-                isoDate = "2023-09-06T17:19:03.443Z",
+                isoDate = "2023-09-07T17:19:03.443Z",
                 pubKeyB64 = "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAuOwpW9boeY2+tihDBAja17fOToCT2mdgUV9HC1xyN8y1" +
                         "pxUTEGGmWxaiVgy49ktl4QooMwOJd8rqcz/uyt4/okE6RvR4cpezPQ/h53eERDoasmxC6wERwg2MfA0Lqo7pY79gGmc2" +
                         "RXdMdFmMjSDJ0zQclhFJR5/zJhiqtN/RY2nIV9B/urBgRVxwcAMBsQ59zu4SM6O1aomBqxM9+IuC5ylcxwRgWkqLgjIj" +
@@ -82,12 +86,161 @@ class AttestationTests : FreeSpec() {
                         "bwifUHXH1wt9pBKCRack0zFJQ6i8CsRmPgsI7SXW6OZzwz5Jzu1stjFXRzTgcmNBkBHjkigU5SNAancp6+LMFdMCAwEA" +
                         "AQ=="
             ).apply {
-                shouldThrow<CertificateInvalidException> {
-                    attestationService().verifyAttestation(
+
+                val packageName = "at.asitplus.atttest"
+                val signatureDigests = listOf("NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray())
+
+                "should fail with HardwareAttestationChecker" {
+                    HardwareAttestationChecker(
+                        AndroidAttestationConfiguration(
+                            listOf(
+                                AndroidAttestationConfiguration.AppData(
+                                    packageName,
+                                    signatureDigests,
+                                )
+                            ),
+                            ignoreLeafValidity = true
+                        )
+                    ).apply {
+                        shouldThrow<CertificateInvalidException> {
+                            verifyAttestation(
+                                attestationCertChain,
+                                verificationDate,
+                                challenge
+                            )
+                        }
+                    }
+                }
+
+                "should fail with NougatHybridAttestationChecker" {
+
+                    NougatHybridAttestationChecker(
+                        AndroidAttestationConfiguration(
+                            listOf(
+                                AndroidAttestationConfiguration.AppData(
+                                    packageName,
+                                    signatureDigests,
+                                )
+                            ),
+                            enableNougatAttestation = true,
+                            ignoreLeafValidity = true
+                        )
+                    ).apply {
+                        shouldThrow<AttestationException> {
+                            verifyAttestation(
+                                attestationCertChain,
+                                verificationDate,
+                                challenge
+                            )
+                        }
+                    }
+                }
+
+                "should work with SoftwareAttestationChecker" {
+                    SoftwareAttestationChecker(
+                        AndroidAttestationConfiguration(
+                            listOf(
+                                AndroidAttestationConfiguration.AppData(
+                                    packageName,
+                                    signatureDigests,
+                                )
+                            ),
+                            enableSoftwareAttestation = true,
+                            ignoreLeafValidity = true
+                        )
+                    ).verifyAttestation(
                         attestationCertChain,
                         verificationDate,
                         challenge
+                    ).shouldBeInstanceOf<ParsedAttestationRecord>().apply {
+                        attestationSecurityLevel shouldBe SecurityLevel.SOFTWARE
+                        keymasterSecurityLevel shouldBe SecurityLevel.SOFTWARE
+                    }
+                }
+            }
+        }
+
+        "Nougat Hybrid Attestation" - {
+
+            val data = AttestationData(
+                "bq Aquaris X with LineageOS",
+                "foobdar".encodeToByteArray().encodeBase64(),
+                listOf(
+                    "MIICkDCCAjagAwIBAgIBATAKBggqhkjOPQQDAjCBiDELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFTATBgNVBAoMDEdvb2dsZSwgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDE7MDkGA1UEAwwyQW5kcm9pZCBLZXlzdG9yZSBTb2Z0d2FyZSBBdHRlc3RhdGlvbiBJbnRlcm1lZGlhdGUwIBcNNzAwMTAxMDAwMDAwWhgPMjEwNjAyMDcwNjI4MTVaMB8xHTAbBgNVBAMMFEFuZHJvaWQgS2V5c3RvcmUgS2V5MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoX5eWkxsJOk2z6S5tclt6bOyJhS3b+2+ULx3O3zZAwFNrbWP52YnQzp/lsexI99lx/Z5NRzJ9x0aDLdIcR/AyqOB9jCB8zALBgNVHQ8EBAMCB4AwgcIGCisGAQQB1nkCAREEgbMwgbACAQIKAQACAQEKAQEEB2Zvb2JkYXIEADBev4U9BwIFAKtq1Vi/hUVPBE0wSzElMCMEHmNvbS5leGFtcGxlLnRydXN0ZWRhcHBsaWNhdGlvbgIBATEiBCCI5cOT6u82gpgAtB33hqUv8KWCFYUMqKZQc4Wa3PAZDzA3oQgxBgIBAgIBA6IDAgEDowQCAgEApQgxBgIBAAIBBKoDAgEBv4N3AgUAv4U+AwIBAL+FPwIFADAfBgNVHSMEGDAWgBQ//KzWGrE6noEguNUlHMVlux6RqTAKBggqhkjOPQQDAgNIADBFAiBiMBtVeUV4j1VOiRU8DnGzq9/xtHfl0wra1xnsmxG+LAIhAJAroVhVcxxItgYZEMN1AaWqmZUXFtktQeLXh7u2F3d+",
+                    "MIICeDCCAh6gAwIBAgICEAEwCgYIKoZIzj0EAwIwgZgxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1Nb3VudGFpbiBWaWV3MRUwEwYDVQQKDAxHb29nbGUsIEluYy4xEDAOBgNVBAsMB0FuZHJvaWQxMzAxBgNVBAMMKkFuZHJvaWQgS2V5c3RvcmUgU29mdHdhcmUgQXR0ZXN0YXRpb24gUm9vdDAeFw0xNjAxMTEwMDQ2MDlaFw0yNjAxMDgwMDQ2MDlaMIGIMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMR29vZ2xlLCBJbmMuMRAwDgYDVQQLDAdBbmRyb2lkMTswOQYDVQQDDDJBbmRyb2lkIEtleXN0b3JlIFNvZnR3YXJlIEF0dGVzdGF0aW9uIEludGVybWVkaWF0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABOueefhCY1msyyqRTImGzHCtkGaTgqlzJhP+rMv4ISdMIXSXSir+pblNf2bU4GUQZjW8U7ego6ZxWD7bPhGuEBSjZjBkMB0GA1UdDgQWBBQ//KzWGrE6noEguNUlHMVlux6RqTAfBgNVHSMEGDAWgBTIrel3TEXDo88NFhDkeUM6IVowzzASBgNVHRMBAf8ECDAGAQH/AgEAMA4GA1UdDwEB/wQEAwIChDAKBggqhkjOPQQDAgNIADBFAiBLipt77oK8wDOHri/AiZi03cONqycqRZ9pDMfDktQPjgIhAO7aAV229DLp1IQ7YkyUBO86fMy9Xvsiu+f+uXc/WT/7",
+                    "MIICizCCAjKgAwIBAgIJAKIFntEOQ1tXMAoGCCqGSM49BAMCMIGYMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEVMBMGA1UECgwMR29vZ2xlLCBJbmMuMRAwDgYDVQQLDAdBbmRyb2lkMTMwMQYDVQQDDCpBbmRyb2lkIEtleXN0b3JlIFNvZnR3YXJlIEF0dGVzdGF0aW9uIFJvb3QwHhcNMTYwMTExMDA0MzUwWhcNMzYwMTA2MDA0MzUwWjCBmDELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxFTATBgNVBAoMDEdvb2dsZSwgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDEzMDEGA1UEAwwqQW5kcm9pZCBLZXlzdG9yZSBTb2Z0d2FyZSBBdHRlc3RhdGlvbiBSb290MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7l1ex+HA220Dpn7mthvsTWpdamguD/9/SQ59dx9EIm29sa/6FsvHrcV30lacqrewLVQBXT5DKyqO107sSHVBpKNjMGEwHQYDVR0OBBYEFMit6XdMRcOjzw0WEOR5QzohWjDPMB8GA1UdIwQYMBaAFMit6XdMRcOjzw0WEOR5QzohWjDPMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgKEMAoGCCqGSM49BAMCA0cAMEQCIDUho++LNEYenNVg8x1YiSBq3KNlQfYNns6KGYxmSGB7AiBNC/NR2TB8fVvaNTQdqEcbY6WFZTytTySn502vQX3xvw=="
+                ),
+                isoDate = "2023-09-10T00:00:00Z"
+            )
+            val signatureDigests = listOf(
+                "88E5C393EAEF36829800B41DF786A52FF0A58215850CA8A65073859ADCF0190F".hexToByteArray(HexFormat.UpperCase)
+            )
+            val packageName = "com.example.trustedapplication"
+
+            "should fail with HardwareAttestationChecker" {
+                HardwareAttestationChecker(
+                    AndroidAttestationConfiguration(
+                        listOf(
+                            AndroidAttestationConfiguration.AppData(
+                                packageName,
+                                signatureDigests,
+                            )
+                        ),
+                        ignoreLeafValidity = true
                     )
+                ).apply {
+                    shouldThrow<CertificateInvalidException> {
+                        verifyAttestation(
+                            data.attestationCertChain,
+                            data.verificationDate,
+                            data.challenge
+                        )
+                    }
+                }
+            }
+
+            "should fail with SoftwareAttestationChecker" {
+                HardwareAttestationChecker(
+                    AndroidAttestationConfiguration(
+                        listOf(
+                            AndroidAttestationConfiguration.AppData(
+                                packageName,
+                                signatureDigests,
+                            )
+                        ),
+                        enableSoftwareAttestation = true,
+                        ignoreLeafValidity = true
+                    )
+                ).apply {
+                    shouldThrow<CertificateInvalidException> {
+                        verifyAttestation(
+                            data.attestationCertChain,
+                            data.verificationDate,
+                            data.challenge
+                        )
+                    }
+                }
+            }
+
+            "should work with NougatHybridAttestationChecker" {
+                NougatHybridAttestationChecker(
+                    AndroidAttestationConfiguration(
+                        listOf(
+                            AndroidAttestationConfiguration.AppData(
+                                packageName,
+                                signatureDigests,
+                            )
+                        ),
+                        enableNougatAttestation = true,
+                        ignoreLeafValidity = true
+                    )
+                ).verifyAttestation(
+                    data.attestationCertChain,
+                    data.verificationDate,
+                    data.challenge
+                ).shouldBeInstanceOf<ParsedAttestationRecord>().apply {
+                    attestationSecurityLevel shouldBe SecurityLevel.SOFTWARE
+                    keymasterSecurityLevel shouldBe SecurityLevel.TRUSTED_ENVIRONMENT
                 }
             }
         }
@@ -273,6 +426,50 @@ class AttestationTests : FreeSpec() {
                         }
                     }
 
+                    "Should fail with Nougat attestation" {
+                        NougatHybridAttestationChecker(
+                            AndroidAttestationConfiguration(
+                                listOf(
+                                    AndroidAttestationConfiguration.AppData(
+                                        ATT_CLIENT_PKG_NAME,
+                                        ATT_CLIENT_DIGESTS,
+                                    )
+                                ),
+                                enableNougatAttestation = true
+                            )
+                        ).apply {
+                            shouldThrow<CertificateInvalidException> {
+                                verifyAttestation(
+                                    recordedAttestation.attestationCertChain,
+                                    recordedAttestation.verificationDate,
+                                    recordedAttestation.challenge
+                                )
+                            }
+                        }
+                    }
+
+                    "Should fail with Software attestation" {
+                        SoftwareAttestationChecker(
+                            AndroidAttestationConfiguration(
+                                listOf(
+                                    AndroidAttestationConfiguration.AppData(
+                                        ATT_CLIENT_PKG_NAME,
+                                        ATT_CLIENT_DIGESTS,
+                                    )
+                                ),
+                                enableSoftwareAttestation = true
+                            )
+                        ).apply {
+                            shouldThrow<CertificateInvalidException> {
+                                verifyAttestation(
+                                    recordedAttestation.attestationCertChain,
+                                    recordedAttestation.verificationDate,
+                                    recordedAttestation.challenge
+                                )
+                            }
+                        }
+                    }
+
                     "Fail" - {
                         val service = attestationService(unlockedBootloaderAllowed = false)
 
@@ -408,13 +605,17 @@ class AttestationTests : FreeSpec() {
     }
 }
 
+private const val ATT_CLIENT_PKG_NAME = "at.asitplus.attestation_client"
+
+val ATT_CLIENT_DIGESTS = listOf(
+    "NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray(),
+    /*this one's an invalid digest and must not affect the tests*/
+    "LvfTC77F/uSecSfJDeLdxQ3gZrVLHX8+NNBp7AiUO0E=".decodeBase64ToArray()
+)
+
 fun attestationService(
-    androidPackageName: String = "at.asitplus.attestation_client",
-    androidAppSignatureDigest: List<ByteArray> = listOf(
-        "NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray(),
-        /*this one's an invalid digest and must not affect the tests*/
-        "LvfTC77F/uSecSfJDeLdxQ3gZrVLHX8+NNBp7AiUO0E=".decodeBase64ToArray()
-    ),
+    androidPackageName: String = ATT_CLIENT_PKG_NAME,
+    androidAppSignatureDigest: List<ByteArray> = ATT_CLIENT_DIGESTS,
     androidVersion: Int? = 10000,
     androidAppVersion: Int? = 1,
     androidPatchLevel: PatchLevel? = PatchLevel(2021, 8),
