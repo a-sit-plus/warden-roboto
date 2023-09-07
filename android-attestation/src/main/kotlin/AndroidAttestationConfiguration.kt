@@ -198,10 +198,12 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
     }
 
     init {
-        if (hardwareAttestationTrustAnchors.isEmpty() && softwareAttestationTrustAnchors.isEmpty()) throw AttestationException(
-            "No trust anchors configured"
-        )
+        if (hardwareAttestationTrustAnchors.isEmpty() && softwareAttestationTrustAnchors.isEmpty())
+            throw AttestationException("No trust anchors configured")
+
         if (applications.isEmpty()) throw AttestationException("No apps configured")
+        if (disableHardwareAttestation && !enableSoftwareAttestation && !enableNougatAttestation)
+            throw AttestationException("Neither hardware, nor hybrid, nor software attestation enabled")
     }
 
     /**
