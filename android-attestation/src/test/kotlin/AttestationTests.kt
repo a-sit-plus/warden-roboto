@@ -634,7 +634,7 @@ fun attestationService(
         androidVersion = androidVersion,
         patchLevel = androidPatchLevel,
         requireStrongBox = requireStrongBox,
-        bootloaderUnlockAllowed = unlockedBootloaderAllowed,
+        allowBootloaderUnlock = unlockedBootloaderAllowed,
         requireRollbackResistance = requireRollbackResistance
     )
 )

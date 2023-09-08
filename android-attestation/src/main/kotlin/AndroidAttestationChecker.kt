@@ -139,7 +139,7 @@ abstract class AndroidAttestationChecker(
 
     @Throws(AttestationException::class)
     protected fun AuthorizationList.verifySystemLocked() {
-        if (attestationConfiguration.bootloaderUnlockAllowed) return
+        if (attestationConfiguration.allowBootloaderUnlock) return
 
         if (rootOfTrust == null) throw AttestationException("Root of Trust not present")
 

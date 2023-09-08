@@ -36,7 +36,7 @@ class FakeAttestationTests : FreeSpec({
                 androidVersion = androidVersion,
                 patchLevel = patchLevel,
                 requireStrongBox = false,
-                bootloaderUnlockAllowed = false,
+                allowBootloaderUnlock = false,
                 ignoreLeafValidity = false,
                 hardwareAttestationTrustAnchors = setOf(attestationProof.last().publicKey)
             )
@@ -132,7 +132,7 @@ class FakeAttestationTests : FreeSpec({
                     androidVersion = androidVersion,
                     patchLevel = patchLevel,
                     requireStrongBox = false,
-                    bootloaderUnlockAllowed = false,
+                    allowBootloaderUnlock = false,
                     ignoreLeafValidity = false
                 )
             )
