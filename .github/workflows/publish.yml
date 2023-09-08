@@ -13,7 +13,7 @@ jobs:
         with:
           submodules: recursive
       - name: Publish to Sonatype
-        run: ./gradlew clean :android-attestation-root:android-attestation:publishToSonatype :android-attestation-root:android-attestation:closeSonatypeStagingRepository
+        run: ./gradlew clean :android-attestation:publishToSonatype :android-attestation:closeSonatypeStagingRepository
         env:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.PUBLISH_SIGNING_KEYID }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.PUBLISH_SIGNING_KEY }}
@@ -32,7 +32,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Dokka HTML
-        run: ./gradlew :android-attestation-root:android-attestation:dokkaHtml
+        run: ./gradlew :android-attestation:dokkaHtml
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
