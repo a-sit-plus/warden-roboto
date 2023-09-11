@@ -3,7 +3,7 @@ import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 group = "at.asitplus"
-version = "0.9.3"
+version = "1.0.0"
 
 plugins {
     kotlin("jvm")
@@ -48,6 +48,8 @@ dependencies {
     api("com.google.guava:guava:32.1.2-jre")
     api(kotlin("stdlib"))
     implementation("org.jspecify:jspecify:0.2.0")
+
+    testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
 }
 
 

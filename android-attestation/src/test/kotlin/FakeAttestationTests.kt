@@ -27,17 +27,18 @@ class FakeAttestationTests : FreeSpec({
             androidPatchLevel = patchLevel.asSingleInt
         )
 
-        val checker = AndroidAttestationChecker(
+        val checker = HardwareAttestationChecker(
             AndroidAttestationConfiguration(
-                packageName = packageName,
-                signatureDigests = listOf(signatureDigest),
-                appVersion = appVersion,
+                listOf(AndroidAttestationConfiguration.AppData(
+                    packageName = packageName,
+                    signatureDigests = listOf(signatureDigest),
+                    appVersion = appVersion)),
                 androidVersion = androidVersion,
                 patchLevel = patchLevel,
                 requireStrongBox = false,
-                bootloaderUnlockAllowed = false,
+                allowBootloaderUnlock = false,
                 ignoreLeafValidity = false,
-                trustAnchors = listOf(attestationProof.last().publicKey)
+                hardwareAttestationTrustAnchors = setOf(attestationProof.last().publicKey)
             )
         )
 
@@ -104,7 +105,7 @@ class FakeAttestationTests : FreeSpec({
         )
 
         "should work when the fake cert is configured as trust anchor" {
-            val record = checker.verifyAttestation(
+            checker.verifyAttestation(
                 certificates = attestationProof,
                 expectedChallenge = challenge
             )
@@ -119,15 +120,19 @@ class FakeAttestationTests : FreeSpec({
         }
 
         "and the fake attestation must not verify against the google root key" {
-            val trustedChecker = AndroidAttestationChecker(
+            val trustedChecker = HardwareAttestationChecker(
                 AndroidAttestationConfiguration(
-                    packageName = packageName,
-                    signatureDigests = listOf(signatureDigest),
-                    appVersion = appVersion,
+                    listOf(
+                        AndroidAttestationConfiguration.AppData(
+                            packageName = packageName,
+                            signatureDigests = listOf(signatureDigest),
+                            appVersion = appVersion,
+                        )
+                    ),
                     androidVersion = androidVersion,
                     patchLevel = patchLevel,
                     requireStrongBox = false,
-                    bootloaderUnlockAllowed = false,
+                    allowBootloaderUnlock = false,
                     ignoreLeafValidity = false
                 )
             )

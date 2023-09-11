@@ -3,6 +3,7 @@ package at.asitplus.attestation.android
 import at.asitplus.attestation.android.exceptions.AttestationException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.android.exceptions.RevocationException
+import com.google.android.attestation.AuthorizationList
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.RootOfTrust
 import io.ktor.client.*
@@ -13,6 +14,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -27,9 +29,9 @@ import java.security.PublicKey
 import java.security.cert.X509Certificate
 import java.util.*
 
-class AndroidAttestationChecker @JvmOverloads constructor(
-    private val attestationConfiguration: AndroidAttestationConfiguration,
-    private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean = { expected, actual -> expected contentEquals actual }
+abstract class AndroidAttestationChecker(
+    protected val attestationConfiguration: AndroidAttestationConfiguration,
+    private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean
 ) {
 
     @Throws(CertificateInvalidException::class, RevocationException::class)
@@ -74,26 +76,28 @@ class AndroidAttestationChecker @JvmOverloads constructor(
     private fun List<X509Certificate>.verifyRootCertificate(verificationDate: Date) {
         val root = last()
         root.checkValidity(verificationDate)
-        val matchingTrustAnchor = attestationConfiguration.trustAnchors
+        val matchingTrustAnchor = trustAnchors
             .firstOrNull { root.publicKey.encoded.contentEquals(it.encoded) }
             ?: throw CertificateInvalidException("No matching root certificate")
         root.verify(matchingTrustAnchor)
     }
 
+    protected abstract val trustAnchors: Collection<PublicKey>
+
     @Throws(AttestationException::class)
-    private fun ParsedAttestationRecord.verifyApplicationPackageNameAndSignatureDigest() {
+    private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
         runCatching {
-            if (softwareEnforced.attestationApplicationId.get().packageInfos.first().packageName != attestationConfiguration.packageName) {
+            if (softwareEnforced.attestationApplicationId.get().packageInfos.first().packageName != application.packageName) {
                 throw AttestationException("Invalid Application Package")
             }
-            attestationConfiguration.appVersion?.let { configuredVersion ->
+            application.appVersion?.let { configuredVersion ->
                 if (softwareEnforced.attestationApplicationId.get().packageInfos.first().version < configuredVersion) {
                     throw AttestationException("Application Version not supported")
                 }
             }
 
             if (!softwareEnforced.attestationApplicationId.get().signatureDigests.any { fromAttestation ->
-                    attestationConfiguration.signatureDigests.any { it.contentEquals(fromAttestation) }
+                    application.signatureDigests.any { it.contentEquals(fromAttestation) }
                 }) {
                 throw AttestationException("Invalid Application Signature Digest")
             }
@@ -107,15 +111,19 @@ class AndroidAttestationChecker @JvmOverloads constructor(
 
 
     @Throws(AttestationException::class)
-    private fun ParsedAttestationRecord.verifyAndroidVersion() {
+    protected abstract fun ParsedAttestationRecord.verifyAndroidVersion(
+        versionOverride: Int? = null,
+        osPatchLevel: Int?
+    )
+    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: Int?) {
         runCatching {
 
-            attestationConfiguration.androidVersion?.let {
-                if ((teeEnforced.osVersion.get()) < it) throw AttestationException("Android version not supported")
+           (versionOverride?: attestationConfiguration.androidVersion)?.let {
+                if ((osVersion.get()) < it) throw AttestationException("Android version not supported")
             }
 
-            attestationConfiguration.osPatchLevel?.let {
-                if ((teeEnforced.osPatchLevel.get()) < it) throw AttestationException("Patch level not supported")
+            (patchLevel?:attestationConfiguration.osPatchLevel)?.let {
+                if ((osPatchLevel.get()) < it) throw AttestationException("Patch level not supported")
             }
         }.onFailure {
             throw when (it) {
@@ -125,41 +133,30 @@ class AndroidAttestationChecker @JvmOverloads constructor(
         }
     }
 
-    @Throws(AttestationException::class)
-    private fun ParsedAttestationRecord.verifyTeeEnforcedAttestation() {
-
-        if (attestationConfiguration.requireStrongBox) {
-            if (attestationSecurityLevel != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
-                throw AttestationException("Attestation security level not StrongBox")
-            if (keymasterSecurityLevel != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
-                throw AttestationException("Keymaster security level not StrongBox")
-        } else {
-            if (attestationSecurityLevel == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
-                throw AttestationException("Attestation security level software")
-            if (keymasterSecurityLevel == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
-                throw AttestationException("Keymaster security level software")
-        }
-
-    }
 
     @Throws(AttestationException::class)
-    private fun ParsedAttestationRecord.verifyBootStateAndSystemImage() {
-        if (attestationConfiguration.bootloaderUnlockAllowed) return
+    protected abstract fun ParsedAttestationRecord.verifyBootStateAndSystemImage()
 
-        if (teeEnforced.rootOfTrust == null) throw AttestationException("Root of Trust not present")
+    @Throws(AttestationException::class)
+    protected fun AuthorizationList.verifySystemLocked() {
+        if (attestationConfiguration.allowBootloaderUnlock) return
 
-        if (!teeEnforced.rootOfTrust.get().deviceLocked) throw AttestationException("Bootloader not locked")
+        if (rootOfTrust == null) throw AttestationException("Root of Trust not present")
 
-        if ((teeEnforced.rootOfTrust.get().verifiedBootState
+        if (!rootOfTrust.get().deviceLocked) throw AttestationException("Bootloader not locked")
+
+        if ((rootOfTrust.get().verifiedBootState
                 ?: RootOfTrust.VerifiedBootState.FAILED) != RootOfTrust.VerifiedBootState.VERIFIED
         ) throw AttestationException("System image not verified")
-
     }
 
     @Throws(AttestationException::class)
-    private fun ParsedAttestationRecord.verifyRollbackResistance() {
+    protected abstract fun ParsedAttestationRecord.verifyRollbackResistance()
+
+    @Throws(AttestationException::class)
+    protected fun AuthorizationList.verifyRollbackResistance() {
         if (attestationConfiguration.requireRollbackResistance)
-            if (!teeEnforced.rollbackResistant) throw AttestationException("No rollback resistance")
+            if (!rollbackResistant) throw AttestationException("No rollback resistance")
     }
 
     /**
@@ -175,7 +172,7 @@ class AndroidAttestationChecker @JvmOverloads constructor(
      *
      */
     @Throws(AttestationException::class, CertificateInvalidException::class, RevocationException::class)
-    fun verifyAttestation(
+    open fun verifyAttestation(
         certificates: List<X509Certificate>,
         verificationDate: Date = Date(),
         expectedChallenge: ByteArray
@@ -192,13 +189,21 @@ class AndroidAttestationChecker @JvmOverloads constructor(
             )
         ) throw AttestationException("verification of attestation challenge failed")
 
-        parsedAttestationRecord.verifyTeeEnforcedAttestation()
+        parsedAttestationRecord.verifySecurityLevel()
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()
-        parsedAttestationRecord.verifyAndroidVersion()
-        parsedAttestationRecord.verifyApplicationPackageNameAndSignatureDigest()
+
+        val attestedApp = attestationConfiguration.applications.associateWith { app ->
+            runCatching { parsedAttestationRecord.verifyApplication(app) }
+        }.let {
+            it.entries.firstOrNull { (_, result) -> result.isSuccess } ?: it.values.first().exceptionOrNull()!!.let { throw it }
+        }.key
+        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.osPatchLevel)
         return parsedAttestationRecord
     }
+
+    @Throws(AttestationException::class)
+    protected abstract fun ParsedAttestationRecord.verifySecurityLevel()
 
     /**
      * taken and adapted from [com.google.android.attestation.CertificateRevocationStatus] to separate downloading and checking
@@ -235,7 +240,7 @@ class AndroidAttestationChecker @JvmOverloads constructor(
 class EternalX509Certificate(private val delegate: X509Certificate) : X509Certificate() {
     override fun toString() = delegate.toString()
 
-    override fun getEncoded() = delegate.encoded
+    override fun getEncoded(): ByteArray = delegate.encoded
 
     override fun verify(key: PublicKey?) = delegate.verify(key)
 

@@ -26,7 +26,7 @@ attestation failed and the library works nicely with pure java
 - Include JavaDoc
 
 ### 0.7.4
-- More Java-freindly API
+- More Java-friendly API
 - More detailed toplevel error messages on certificate verification fail
 - Kotlin 1.8.0
 
@@ -58,3 +58,17 @@ attestation failed and the library works nicely with pure java
 ### 0.9.3
 - add guava to API for java interop
 - kotlin-stdlib API dependency for java interop
+
+
+## 1.0.0
+
+**This version introduces incompatible changes! Re-read the readme!**
+
+Most notably, it now supports configuring multiple applications, introduces optional software-only attestation and a new hybrid
+attestation checker, which caters towards legacy devices, which originally shipped with Android 7 (Nougat).
+Most of such devices support hardware attestation only for keys, but not for app/os-related information.
+<br>
+Moreover, a builder is now available for more Java-friendliness
+
+In addition, 1.0.0. introduces a new diagnostics tool (a runnable jar), which takes an attestation certificate and prints
+out the attestation record.
