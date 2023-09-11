@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
             java.util.Optional::class.java,
             JsonSerializer<java.util.Optional<*>> { src, _, ctx ->
                 if (src == null || src.isEmpty) {
-                    if (!full) null else JsonNull()
+                    if (!full) null else JsonNull.INSTANCE
                 } else ctx.serialize(src.get())
             })
         registerTypeAdapter(
