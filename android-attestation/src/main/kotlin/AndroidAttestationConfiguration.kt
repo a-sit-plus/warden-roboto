@@ -248,6 +248,50 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
          */
         val osPatchLevel: Int? = patchLevelOverride?.asSingleInt
 
+        /**
+         * Builder for more java-friendliness
+         * @param packageName Android app package name (e.g. `at.asitplus.demo`)
+         * @param signatureDigests  SHA-256 digests of signature certificates used to sign the APK. This is a Google cloud signing certificate for
+         * production play store releases.
+         * Being able to specify multiple digests makes it easy to use development builds and production builds in parallel
+         */
+        class Builder(private val packageName: String, private val signatureDigests: List<ByteArray>) {
+
+            /**
+             * Builder for more java-friendliness
+             * @param packageName Android app package name (e.g. `at.asitplus.demo`)
+             * @param signatureDigests  SHA-256 digests of signature certificates used to sign the APK. This is a Google cloud signing certificate for
+             * production play store releases.
+             * Being able to specify multiple digests makes it easy to use development builds and production builds in parallel
+             */
+            constructor(packageName: String, vararg signatureDigests: ByteArray) : this(
+                packageName,
+                signatureDigests.asList()
+            )
+
+            private var appVersion: Int? = null
+            private var androidVersionOverride: Int? = null
+            private var patchLevelOverride: PatchLevel? = null
+
+            /**
+             * @see AppData.appVersion
+             */
+            fun appVersion(version: Int) = apply { appVersion = version }
+
+            /**
+             * @see AppData.androidVersionOverride
+             */
+            fun overrideAndroidVersion(version: Int) = apply { androidVersionOverride = version }
+
+            /**
+             * optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter.
+             */
+            fun overridePatchLevel(level: PatchLevel) = apply { patchLevelOverride = level }
+
+            fun build() =
+                AppData(packageName, signatureDigests, appVersion, androidVersionOverride, patchLevelOverride)
+        }
+
     }
 
     init {

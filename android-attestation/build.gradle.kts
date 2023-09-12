@@ -3,7 +3,7 @@ import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 group = "at.asitplus"
-version = "1.0.0"
+version = "1.1.0"
 
 plugins {
     kotlin("jvm")

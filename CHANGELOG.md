@@ -72,3 +72,6 @@ Moreover, a builder is now available for more Java-friendliness
 
 In addition, 1.0.0. introduces a new diagnostics tool (a runnable jar), which takes an attestation certificate and prints
 out the attestation record.
+
+### 1.1.0
+- introduce builder for `AppData`
