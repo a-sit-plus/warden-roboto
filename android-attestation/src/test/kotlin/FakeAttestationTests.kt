@@ -6,6 +6,7 @@ import at.asitplus.attestation.data.AttestationData
 import at.asitplus.attestation.data.attestationCertChain
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 import kotlin.random.Random
 
 class FakeAttestationTests : FreeSpec({
@@ -116,7 +117,7 @@ class FakeAttestationTests : FreeSpec({
 
             shouldThrow<CertificateInvalidException> {
                 checker.verifyAttestation(nokia.attestationCertChain, expectedChallenge = nokia.challenge)
-            }
+            }.reason shouldBe CertificateInvalidException.Reason.TRUST
         }
 
         "and the fake attestation must not verify against the google root key" {
@@ -141,7 +142,7 @@ class FakeAttestationTests : FreeSpec({
                     certificates = attestationProof,
                     expectedChallenge = challenge
                 )
-            }
+            }.reason shouldBe CertificateInvalidException.Reason.TRUST
         }
 
 

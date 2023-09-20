@@ -1,6 +1,6 @@
 package at.asitplus.attestation.android
 
-import at.asitplus.attestation.android.exceptions.AttestationException
+import at.asitplus.attestation.android.exceptions.AndroidAttestationException
 import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import java.security.KeyFactory
 import java.security.PublicKey
@@ -240,7 +240,8 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
 
         ) {
         init {
-            if (signatureDigests.isEmpty()) throw AttestationException("No signature digests specified")
+            if (signatureDigests.isEmpty()) throw object :
+                AndroidAttestationException("No signature digests specified", null) {}
         }
 
         /**
@@ -296,11 +297,13 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
 
     init {
         if (hardwareAttestationTrustAnchors.isEmpty() && softwareAttestationTrustAnchors.isEmpty())
-            throw AttestationException("No trust anchors configured")
+            throw object : AndroidAttestationException("No trust anchors configured", null) {}
 
-        if (applications.isEmpty()) throw AttestationException("No apps configured")
+        if (applications.isEmpty()) throw object : AndroidAttestationException("No apps configured", null) {}
         if (disableHardwareAttestation && !enableSoftwareAttestation && !enableNougatAttestation)
-            throw AttestationException("Neither hardware, nor hybrid, nor software attestation enabled")
+            throw object : AndroidAttestationException(
+                "Neither hardware, nor hybrid, nor software attestation enabled", null
+            ) {}
     }
 
     /**

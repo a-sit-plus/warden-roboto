@@ -1,6 +1,7 @@
 package at.asitplus.attestation.android
 
-import at.asitplus.attestation.android.exceptions.AttestationException
+import at.asitplus.attestation.android.exceptions.AndroidAttestationException
+import at.asitplus.attestation.android.exceptions.AttestationValueException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.data.AttestationData
 import at.asitplus.attestation.data.attestationCertChain
@@ -108,7 +109,7 @@ class AttestationTests : FreeSpec() {
                                 verificationDate,
                                 challenge
                             )
-                        }
+                        }.reason shouldBe CertificateInvalidException.Reason.TRUST
                     }
                 }
 
@@ -126,13 +127,13 @@ class AttestationTests : FreeSpec() {
                             ignoreLeafValidity = true
                         )
                     ).apply {
-                        shouldThrow<AttestationException> {
+                        shouldThrow<AttestationValueException> {
                             verifyAttestation(
                                 attestationCertChain,
                                 verificationDate,
                                 challenge
                             )
-                        }
+                        }.reason shouldBe AttestationValueException.Reason.SEC_LEVEL
                     }
                 }
 
@@ -195,7 +196,7 @@ class AttestationTests : FreeSpec() {
                             data.verificationDate,
                             data.challenge
                         )
-                    }
+                    }.reason shouldBe CertificateInvalidException.Reason.TRUST
                 }
             }
 
@@ -218,7 +219,7 @@ class AttestationTests : FreeSpec() {
                             data.verificationDate,
                             data.challenge
                         )
-                    }
+                    }.reason shouldBe CertificateInvalidException.Reason.TRUST
                 }
             }
 
@@ -444,7 +445,7 @@ class AttestationTests : FreeSpec() {
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe CertificateInvalidException.Reason.TRUST
                         }
                     }
 
@@ -466,7 +467,7 @@ class AttestationTests : FreeSpec() {
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe CertificateInvalidException.Reason.TRUST
                         }
                     }
 
@@ -480,31 +481,31 @@ class AttestationTests : FreeSpec() {
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe CertificateInvalidException.Reason.TRUST
                             shouldThrow<CertificateInvalidException> {
                                 service.verifyAttestation(
                                     recordedAttestation.attestationCertChain.subList(0, 1),
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe CertificateInvalidException.Reason.TRUST
                             shouldThrow<CertificateInvalidException> {
                                 service.verifyAttestation(
                                     recordedAttestation.attestationCertChain.subList(0, 2),
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe CertificateInvalidException.Reason.TRUST
                         }
 
                         "require StrongBox" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AttestationValueException> {
                                 attestationService(requireStrongBox = true).verifyAttestation(
                                     recordedAttestation.attestationCertChain,
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe AttestationValueException.Reason.SEC_LEVEL
                         }
 
                         "time of verification" - {
@@ -518,7 +519,7 @@ class AttestationTests : FreeSpec() {
                                         ),
                                         recordedAttestation.challenge
                                     )
-                                }
+                                }.reason shouldBe CertificateInvalidException.Reason.TIME
                             }
 
                             "too late" {
@@ -531,22 +532,22 @@ class AttestationTests : FreeSpec() {
                                         ),
                                         recordedAttestation.challenge
                                     )
-                                }
+                                }.reason shouldBe CertificateInvalidException.Reason.TIME
                             }
                         }
 
                         "package name" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AttestationValueException> {
                                 attestationService(androidPackageName = "org.wrong.package.name").verifyAttestation(
                                     recordedAttestation.attestationCertChain,
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe AttestationValueException.Reason.PACKAGE_NAME
                         }
 
                         "wrong signature digests" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AttestationValueException> {
                                 attestationService(
                                     androidAppSignatureDigest = listOf(
                                         byteArrayOf(0, 32, 55, 29, 120, 22, 0),
@@ -558,11 +559,11 @@ class AttestationTests : FreeSpec() {
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe AttestationValueException.Reason.APP_SIGNER_DIGEST
                         }
 
                         "no signature digests, cannot instantiate" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AndroidAttestationException> {
                                 attestationService(androidAppSignatureDigest = listOf())
                             }
                         }
@@ -570,33 +571,43 @@ class AttestationTests : FreeSpec() {
 
 
                         "app version" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AttestationValueException> {
+                                attestationService(androidAppVersion = 20).verifyAttestation(
+                                    recordedAttestation.attestationCertChain,
+                                    recordedAttestation.verificationDate,
+                                    recordedAttestation.challenge
+                                )
+                            }.reason shouldBe AttestationValueException.Reason.APP_VERSION
+                        }
+
+                        "OS version" {
+                            shouldThrow<AttestationValueException> {
                                 attestationService(androidVersion = 200000).verifyAttestation(
                                     recordedAttestation.attestationCertChain,
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe AttestationValueException.Reason.OS_VERSION
                         }
 
                         "patch level" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AttestationValueException> {
                                 attestationService(androidPatchLevel = PatchLevel(2030, 1)).verifyAttestation(
                                     recordedAttestation.attestationCertChain,
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe AttestationValueException.Reason.OS_VERSION
                         }
 
                         "rollback resistance" {
-                            shouldThrow<AttestationException> {
+                            shouldThrow<AttestationValueException> {
                                 attestationService(requireRollbackResistance = true).verifyAttestation(
                                     recordedAttestation.attestationCertChain,
                                     recordedAttestation.verificationDate,
                                     recordedAttestation.challenge
                                 )
-                            }
+                            }.reason shouldBe AttestationValueException.Reason.ROLLBACK_RESISTANCE
                         }
                     }
                 }

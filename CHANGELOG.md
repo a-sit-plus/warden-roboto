@@ -75,3 +75,7 @@ out the attestation record.
 
 ### 1.1.0
 - introduce builder for `AppData`
+
+### 1.2.0
+- introduce well-defined error codes for every way an attestation can fail
+- refactor exception hierarchy as a consequence
