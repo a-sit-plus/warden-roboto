@@ -79,3 +79,6 @@ out the attestation record.
 ### 1.2.0
 - introduce well-defined error codes for every way an attestation can fail
 - refactor exception hierarchy as a consequence
+
+#### 1.2.1
+- make all config classes `data` classes

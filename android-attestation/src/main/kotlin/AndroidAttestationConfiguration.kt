@@ -76,7 +76,7 @@ val DEFAULT_SOFTWARE_TRUST_ANCHORS = arrayOf(
  * Enabling this flag, while keeping [disableHardwareAttestation] `true` makes is possible to instantiate both a
  * [HardwareAttestationChecker] and a [SoftwareAttestationChecker].
  */
-class AndroidAttestationConfiguration @JvmOverloads constructor(
+data class AndroidAttestationConfiguration @JvmOverloads constructor(
 
     /**
      * List of applications, which can be attested
@@ -94,7 +94,7 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      * optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter.
      * Can be overridden for individual apps.
      */
-    patchLevel: PatchLevel? = null,
+    private val patchLevel: PatchLevel? = null,
 
     /**
      * Set to `true` if *StrongBox* security level should be required.
@@ -210,7 +210,7 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
      * builds and production builds in parallel.
      * @param appVersion optional parameter. If set, attestation enforces application version to be greater or equal to this parameter
      * */
-    class AppData @JvmOverloads constructor(
+    data class AppData @JvmOverloads constructor(
         /**
          * Android app package name (e.g. `at.asitplus.demo`)
          */
@@ -236,7 +236,7 @@ class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter.
          */
-        patchLevelOverride: PatchLevel? = null,
+        private val patchLevelOverride: PatchLevel? = null,
 
         ) {
         init {
