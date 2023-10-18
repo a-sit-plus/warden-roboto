@@ -30,10 +30,10 @@ class FakeAttestationTests : FreeSpec({
 
         val checker = HardwareAttestationChecker(
             AndroidAttestationConfiguration(
-                listOf(AndroidAttestationConfiguration.AppData(
+                AndroidAttestationConfiguration.AppData(
                     packageName = packageName,
                     signatureDigests = listOf(signatureDigest),
-                    appVersion = appVersion)),
+                    appVersion = appVersion),
                 androidVersion = androidVersion,
                 patchLevel = patchLevel,
                 requireStrongBox = false,

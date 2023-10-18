@@ -82,3 +82,6 @@ out the attestation record.
 
 #### 1.2.1
 - make all config classes `data` classes
+- 
+#### 1.3.0
+- make configuration play nicely with file-based config loading (e.g. [HopLite](https://github.com/sksamuel/hoplite))
