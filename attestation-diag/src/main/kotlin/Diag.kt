@@ -13,7 +13,7 @@ import com.google.gson.JsonSerializer
 fun main(args: Array<String>) {
 
     if (args.isEmpty()) {
-        System.err.println("Certificat neither specified in a file (-f <path to PEM/Base64 cert>) nor as parameter <Base64 cert>!")
+        System.err.println("Certificate neither specified in a file (-f <path to PEM/Base64 cert>) nor as parameter <Base64 cert>!")
         System.exit(1)
     }
     val certB64 = if (args[0] == "-f") java.io.File(args[1]).readText() else args[0]

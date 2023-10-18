@@ -82,6 +82,11 @@ out the attestation record.
 
 #### 1.2.1
 - make all config classes `data` classes
-- 
-#### 1.3.0
+
+### 1.3.0
 - make configuration play nicely with file-based config loading (e.g. [HopLite](https://github.com/sksamuel/hoplite))
+
+### 1.4.0
+- reorganized constructors for less confusing file-based config loading
+- update to latest conventions plugin
+- build against JDK11 as per gradle.properties

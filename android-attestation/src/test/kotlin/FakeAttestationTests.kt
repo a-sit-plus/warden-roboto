@@ -123,7 +123,7 @@ class FakeAttestationTests : FreeSpec({
         "and the fake attestation must not verify against the google root key" {
             val trustedChecker = HardwareAttestationChecker(
                 AndroidAttestationConfiguration(
-                    listOf(
+                    applications = listOf(
                         AndroidAttestationConfiguration.AppData(
                             packageName = packageName,
                             signatureDigests = listOf(signatureDigest),
