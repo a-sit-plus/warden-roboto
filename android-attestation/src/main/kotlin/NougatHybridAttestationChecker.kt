@@ -28,15 +28,15 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifySecurityLevel() {
         if (attestationConfiguration.requireStrongBox) {
-            if (keymasterSecurityLevel != ParsedAttestationRecord.SecurityLevel.STRONG_BOX) throw AttestationValueException(
+            if (keymasterSecurityLevel() != ParsedAttestationRecord.SecurityLevel.STRONG_BOX) throw AttestationValueException(
                 "Keymaster security level not StrongBox", reason = AttestationValueException.Reason.SEC_LEVEL
             )
         } else {
-            if (keymasterSecurityLevel == ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
+            if (keymasterSecurityLevel() == ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
                 "Keymaster security level software", reason = AttestationValueException.Reason.SEC_LEVEL
             )
         }
-        if (attestationSecurityLevel != ParsedAttestationRecord.SecurityLevel.SOFTWARE) {
+        if (attestationSecurityLevel() != ParsedAttestationRecord.SecurityLevel.SOFTWARE) {
             throw AttestationValueException(
                 "Attestation security level not software", reason = AttestationValueException.Reason.SEC_LEVEL
             )
@@ -56,5 +56,5 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
     }
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced.verifyRollbackResistance()
+    override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced().verifyRollbackResistance()
 }

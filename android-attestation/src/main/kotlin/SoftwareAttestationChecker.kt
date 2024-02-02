@@ -38,10 +38,10 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifySecurityLevel() {
-        if (attestationSecurityLevel != ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
+        if (attestationSecurityLevel() != ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
             "Attestation security level not software", reason = AttestationValueException.Reason.SEC_LEVEL
         )
-        if (keymasterSecurityLevel != ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
+        if (keymasterSecurityLevel() != ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
             "Keymaster security level not software", reason = AttestationValueException.Reason.SEC_LEVEL
         )
     }
@@ -50,7 +50,7 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: Int?) =
-        softwareEnforced.verifyAndroidVersion(versionOverride, osPatchLevel)
+        softwareEnforced().verifyAndroidVersion(versionOverride, osPatchLevel)
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyBootStateAndSystemImage() {
@@ -58,5 +58,5 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
     }
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyRollbackResistance() = softwareEnforced.verifyRollbackResistance()
+    override fun ParsedAttestationRecord.verifyRollbackResistance() = softwareEnforced().verifyRollbackResistance()
 }

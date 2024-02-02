@@ -28,23 +28,23 @@ class HardwareAttestationChecker @JvmOverloads constructor(
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifySecurityLevel() {
         if (attestationConfiguration.requireStrongBox) {
-            if (attestationSecurityLevel != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
+            if (attestationSecurityLevel() != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
                 throw AttestationValueException(
                     "Attestation security level not StrongBox",
                     reason = AttestationValueException.Reason.SEC_LEVEL
                 )
-            if (keymasterSecurityLevel != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
+            if (keymasterSecurityLevel() != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
                 throw AttestationValueException(
                     "Keymaster security level not StrongBox",
                     reason = AttestationValueException.Reason.SEC_LEVEL
                 )
         } else {
-            if (attestationSecurityLevel == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
+            if (attestationSecurityLevel() == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
                 throw AttestationValueException(
                     "Attestation security level software",
                     reason = AttestationValueException.Reason.SEC_LEVEL
                 )
-            if (keymasterSecurityLevel == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
+            if (keymasterSecurityLevel() == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
                 throw AttestationValueException(
                     "Keymaster security level software",
                     reason = AttestationValueException.Reason.SEC_LEVEL
@@ -56,11 +56,11 @@ class HardwareAttestationChecker @JvmOverloads constructor(
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: Int?) =
-        teeEnforced.verifyAndroidVersion(versionOverride, osPatchLevel)
+        teeEnforced().verifyAndroidVersion(versionOverride, osPatchLevel)
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyBootStateAndSystemImage() = teeEnforced.verifySystemLocked()
+    override fun ParsedAttestationRecord.verifyBootStateAndSystemImage() = teeEnforced().verifySystemLocked()
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced.verifyRollbackResistance()
+    override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced().verifyRollbackResistance()
 }

@@ -51,6 +51,19 @@ attestation failed and the library works nicely with pure java
 - ability to add offset to time of verification (thanks @rolicz)
 - fix Java 8 builds (thanks @rolicz)
 
+## 1.0.0
+- deprecate MR jar (= remove Java 8 support)
+- Build against JDK11
+- Kotlin 1.9.22
+- Update to latest `android-key-attestation` codebase from Google (2024-01-31)
+- Dependency updates:
+  - Bouncy Castle 1.77
+  - Ktor 2.3.7
+  - kotlinx.datetime 0.5.0
+  - Napier 2.7.1
+  - Guava 33.0.0-jre
+  - Error Prone 2.24.1
+  - (NEW) AutoValue 1.10.4
 ### 0.9.2
 - drop broken java 8 target
 - update sources from upstream
@@ -90,3 +103,15 @@ out the attestation record.
 - reorganized constructors for less confusing file-based config loading
 - update to latest conventions plugin
 - build against JDK11 as per gradle.properties
+
+### 1.5.0
+- Kotlin 1.9.22
+- Update to latest `android-key-attestation` codebase from Google (2024-01-31)
+- Dependency updates:
+  - Bouncy Castle 1.77
+  - Ktor 2.3.7
+  - kotlinx.datetime 0.5.0
+  - Napier 2.7.1
+  - Guava 33.0.0-jre
+  - Error Prone 2.24.1
+  - (NEW) AutoValue 1.10.4

@@ -112,14 +112,14 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
         runCatching {
-            if (softwareEnforced.attestationApplicationId.get().packageInfos.first().packageName != application.packageName) {
+            if (softwareEnforced().attestationApplicationId().get().packageInfos().first().packageName() != application.packageName) {
                 throw AttestationValueException(
                     "Invalid Application Package",
                     reason = AttestationValueException.Reason.PACKAGE_NAME
                 )
             }
             application.appVersion?.let { configuredVersion ->
-                if (softwareEnforced.attestationApplicationId.get().packageInfos.first().version < configuredVersion) {
+                if (softwareEnforced().attestationApplicationId().get().packageInfos().first().version() < configuredVersion) {
                     throw AttestationValueException(
                         "Application Version not supported",
                         reason = AttestationValueException.Reason.APP_VERSION
@@ -127,8 +127,8 @@ abstract class AndroidAttestationChecker(
                 }
             }
 
-            if (!softwareEnforced.attestationApplicationId.get().signatureDigests.any { fromAttestation ->
-                    application.signatureDigests.any { it.contentEquals(fromAttestation) }
+            if (!softwareEnforced().attestationApplicationId().get().signatureDigests().any { fromAttestation ->
+                    application.signatureDigests.any { it.contentEquals(fromAttestation.toByteArray()) }
                 }) {
                 throw AttestationValueException(
                     "Invalid Application Signature Digest",
@@ -158,14 +158,14 @@ abstract class AndroidAttestationChecker(
         runCatching {
 
             (versionOverride ?: attestationConfiguration.androidVersion)?.let {
-                if ((osVersion.get()) < it) throw AttestationValueException(
+                if ((osVersion().get()) < it) throw AttestationValueException(
                     "Android version not supported",
                     reason = AttestationValueException.Reason.OS_VERSION
                 )
             }
 
             (patchLevel ?: attestationConfiguration.osPatchLevel)?.let {
-                if ((osPatchLevel.get()) < it) throw AttestationValueException(
+                if ((osPatchLevel().get()) < it) throw AttestationValueException(
                     "Patch level not supported",
                     reason = AttestationValueException.Reason.OS_VERSION
                 )
@@ -190,17 +190,17 @@ abstract class AndroidAttestationChecker(
     protected fun AuthorizationList.verifySystemLocked() {
         if (attestationConfiguration.allowBootloaderUnlock) return
 
-        if (rootOfTrust == null) throw AttestationValueException(
+        if (rootOfTrust() == null) throw AttestationValueException(
             "Root of Trust not present",
             reason = AttestationValueException.Reason.SYSTEM_INTEGRITY
         )
 
-        if (!rootOfTrust.get().deviceLocked) throw AttestationValueException(
+        if (!rootOfTrust().get().deviceLocked()) throw AttestationValueException(
             "Bootloader not locked",
             reason = AttestationValueException.Reason.SYSTEM_INTEGRITY
         )
 
-        if ((rootOfTrust.get().verifiedBootState
+        if ((rootOfTrust().get().verifiedBootState()
                 ?: RootOfTrust.VerifiedBootState.FAILED) != RootOfTrust.VerifiedBootState.VERIFIED
         ) throw AttestationValueException(
             "System image not verified",
@@ -214,7 +214,7 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     protected fun AuthorizationList.verifyRollbackResistance() {
         if (attestationConfiguration.requireRollbackResistance)
-            if (!rollbackResistant) throw AttestationValueException(
+            if (!rollbackResistant()) throw AttestationValueException(
                 "No rollback resistance",
                 reason = AttestationValueException.Reason.ROLLBACK_RESISTANCE
             )
@@ -246,7 +246,7 @@ abstract class AndroidAttestationChecker(
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
         if (!verifyChallenge(
                 expectedChallenge,
-                parsedAttestationRecord.attestationChallenge
+                parsedAttestationRecord.attestationChallenge().toByteArray()
             )
         ) throw AttestationValueException(
             "verification of attestation challenge failed",

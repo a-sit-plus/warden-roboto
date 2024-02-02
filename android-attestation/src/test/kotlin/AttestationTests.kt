@@ -154,8 +154,8 @@ class AttestationTests : FreeSpec() {
                         verificationDate,
                         challenge
                     ).shouldBeInstanceOf<ParsedAttestationRecord>().apply {
-                        attestationSecurityLevel shouldBe SecurityLevel.SOFTWARE
-                        keymasterSecurityLevel shouldBe SecurityLevel.SOFTWARE
+                        attestationSecurityLevel() shouldBe SecurityLevel.SOFTWARE
+                        keymasterSecurityLevel() shouldBe SecurityLevel.SOFTWARE
                     }
                 }
             }
@@ -240,8 +240,8 @@ class AttestationTests : FreeSpec() {
                     data.verificationDate,
                     data.challenge
                 ).shouldBeInstanceOf<ParsedAttestationRecord>().apply {
-                    attestationSecurityLevel shouldBe SecurityLevel.SOFTWARE
-                    keymasterSecurityLevel shouldBe SecurityLevel.TRUSTED_ENVIRONMENT
+                    attestationSecurityLevel() shouldBe SecurityLevel.SOFTWARE
+                    keymasterSecurityLevel() shouldBe SecurityLevel.TRUSTED_ENVIRONMENT
                 }
             }
         }
