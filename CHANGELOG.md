@@ -115,3 +115,7 @@ out the attestation record.
   - Guava 33.0.0-jre
   - Error Prone 2.24.1
   - (NEW) AutoValue 1.10.4
+
+#### 1.5.1
+- dependency updated
+- correctly expose guava as api dependency

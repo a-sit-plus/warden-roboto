@@ -19,7 +19,9 @@ internal val rsaKeyFactory = KeyFactory.getInstance("RSA")
 class AttestationData(
     val name: String, challengeB64: String, val attestationProofB64: List<String>,
     isoDate: String,
-    pubKeyB64: String? = null
+    pubKeyB64: String? = null,
+    val packageOverride: String? = null,
+    val isProductionOverride: Boolean? = null
 ) {
 
     val verificationDate: Date = Date.from(Instant.parse(isoDate))
@@ -28,7 +30,7 @@ class AttestationData(
 
     val publicKey: PublicKey? by lazy {
         pubKeyB64?.let { mimeDecoder.decode(it) }
-            ?.let { (if (it.size < 1024) ecKeyFactory else rsaKeyFactory).generatePublic(X509EncodedKeySpec(it)) }
+            ?.let { (if (it.size < 2048) ecKeyFactory else rsaKeyFactory).generatePublic(X509EncodedKeySpec(it)) }
     }
 }
 

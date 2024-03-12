@@ -3,7 +3,7 @@ import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 group = "at.asitplus"
-version = "1.5.0"
+version = "1.5.1"
 
 plugins {
     kotlin("jvm")
@@ -45,7 +45,7 @@ dependencies {
     implementation(ktor("serialization-kotlinx-json"))
     implementation(ktor("client-cio"))
     implementation("com.google.errorprone:error_prone_annotations:2.24.1")
-    implementation("com.google.guava:guava:33.0.0-jre")
+    api("com.google.guava:guava:33.0.0-jre")
     implementation("com.google.auto.value:auto-value-annotations:1.10.4")
     annotationProcessor ("com.google.auto.value:auto-value:1.10.4")
     api("com.google.protobuf:protobuf-javalite:3.25.1")
