@@ -1,19 +1,45 @@
 package at.asitplus.attestation.android
 
+import com.zkdcloud.proxy.http.ServerStart
+import com.zkdcloud.proxy.http.handler.client.ExceptionDuplexHandler
+import com.zkdcloud.proxy.http.handler.client.JudgeTypeInboundHandler
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.netty.bootstrap.ServerBootstrap
+import io.netty.buffer.PooledByteBufAllocator
+import io.netty.channel.Channel
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.codec.http.HttpRequestDecoder
+import io.netty.handler.codec.http.HttpResponseEncoder
+import io.netty.handler.timeout.IdleStateHandler
+import io.netty.util.concurrent.DefaultThreadFactory
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.math.BigInteger
+import java.net.ConnectException
 import java.nio.charset.StandardCharsets
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
+import kotlin.math.min
 
 
 const val TEST_STATUS_LIST_PATH = "../android-key-attestation/server/src/test/resources/status.json"
@@ -53,7 +79,7 @@ class RevocationTestFromGoogleSources : FreeSpec({
                 val client = MockEngine { _ ->
                     requestCounter++
                     respond(withExpiry = false)
-                }.setup()
+                }.setup(null)
                 val times = 1000
                 repeat(times) {
                     AndroidAttestationChecker.RevocationList.fromGoogleServer(client)
@@ -66,7 +92,7 @@ class RevocationTestFromGoogleSources : FreeSpec({
                 val client = MockEngine { _ ->
                     requestCounter++
                     respond(withExpiry = true)
-                }.setup()
+                }.setup(null)
                 val times = 1000
                 repeat(times) {
                     AndroidAttestationChecker.RevocationList.fromGoogleServer(client)
@@ -75,6 +101,15 @@ class RevocationTestFromGoogleSources : FreeSpec({
             }
         }
 
+        "Test HTTP local proxy" {
+            val client = HttpClient(CIO) { setup("http://localhost:1081") }
+            shouldThrow<ConnectException> {
+                AndroidAttestationChecker.RevocationList.fromGoogleServer(client)
+            }
+            startProxy()
+            AndroidAttestationChecker.RevocationList.fromGoogleServer(client)
+                .isRevoked(BigInteger("6681152659205225093", 16)) shouldBe true
+        }
 
         "load Bad Serial" {
             AndroidAttestationChecker.RevocationList.from(File(TEST_STATUS_LIST_PATH).inputStream()).isRevoked(
@@ -85,6 +120,45 @@ class RevocationTestFromGoogleSources : FreeSpec({
 
     }
 })
+
+private fun MockEngine.setup(proxyUrl: String?) = HttpClient(this) { setup(proxyUrl) }
+
+//Ripped from MIT-Licences HTTP Proxy included as submodule. NOT PART OF RELEASE! Only Used for Testing
+private fun startProxy(): ChannelFuture? {
+
+    ServerStart.serverConfigure.port = 1081
+    val serverBootstrap = ServerBootstrap()
+    val logger = LoggerFactory.getLogger(ServerStart::class.java)
+
+    val bossGroup = NioEventLoopGroup(
+        min((Runtime.getRuntime().availableProcessors() + 1).toDouble(), 32.0)
+            .toInt(), DefaultThreadFactory("boss-threads")
+    )
+    val workGroup = NioEventLoopGroup(
+        ServerStart.serverConfigure.threadNumber,
+        DefaultThreadFactory("workers-threads")
+    )
+
+    serverBootstrap.group(bossGroup, workGroup)
+        .channel(NioServerSocketChannel::class.java)
+        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+        .childOption(ChannelOption.TCP_NODELAY, true)
+        .childHandler(object : ChannelInitializer<Channel>() {
+            @Throws(Exception::class)
+            override fun initChannel(ch: Channel) {
+                ch.pipeline()
+                    .addLast("idle", IdleStateHandler(0, 0, ServerStart.serverConfigure.idleTime, TimeUnit.SECONDS))
+                    .addLast("http-decoder", HttpRequestDecoder())
+                    .addLast("http-encoder", HttpResponseEncoder())
+                    .addLast("connect-judge", JudgeTypeInboundHandler())
+                    .addLast("exception", ExceptionDuplexHandler())
+            }
+        })
+    val port = ServerStart.serverConfigure.port
+    println("http server start at " + port)
+
+    return serverBootstrap.bind(port).sync().channel().closeFuture()
+}
 
 private fun MockRequestHandleScope.respond(withExpiry: Boolean) = respond(
     content = ByteReadChannel(File(TEST_STATUS_LIST_PATH).readBytes()),

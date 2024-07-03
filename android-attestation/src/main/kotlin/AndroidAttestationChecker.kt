@@ -36,6 +36,8 @@ abstract class AndroidAttestationChecker(
     private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean
 ) {
 
+    private val revocationListClient = HttpClient(CIO) { setup(attestationConfiguration.httpProxy) }
+
     @Throws(CertificateInvalidException::class, RevocationException::class)
     private fun List<X509Certificate>.verifyCertificateChain(verificationDate: Date) {
 
@@ -47,7 +49,7 @@ abstract class AndroidAttestationChecker(
                     if ((it is CertificateExpiredException) || (it is CertificateNotYetValidException)) CertificateInvalidException.Reason.TIME else CertificateInvalidException.Reason.TRUST
                 )
             }
-        val revocationStatusList = runCatching { RevocationList.fromGoogleServer() }
+        val revocationStatusList = runCatching { RevocationList.fromGoogleServer(client = revocationListClient) }
             .getOrElse {
                 throw RevocationException(
                     "could not download revocation information",
@@ -112,14 +114,18 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
         runCatching {
-            if (softwareEnforced().attestationApplicationId().get().packageInfos().first().packageName() != application.packageName) {
+            if (softwareEnforced().attestationApplicationId().get().packageInfos().first()
+                    .packageName() != application.packageName
+            ) {
                 throw AttestationValueException(
                     "Invalid Application Package",
                     reason = AttestationValueException.Reason.PACKAGE_NAME
                 )
             }
             application.appVersion?.let { configuredVersion ->
-                if (softwareEnforced().attestationApplicationId().get().packageInfos().first().version() < configuredVersion) {
+                if (softwareEnforced().attestationApplicationId().get().packageInfos().first()
+                        .version() < configuredVersion
+                ) {
                     throw AttestationValueException(
                         "Application Version not supported",
                         reason = AttestationValueException.Reason.APP_VERSION
@@ -284,7 +290,7 @@ abstract class AndroidAttestationChecker(
 
         companion object {
             @JvmStatic
-            private val client by lazy { CIO.create().setup() }
+            private val client by lazy { HttpClient(CIO) { setup(null) } }
 
             @OptIn(ExperimentalSerializationApi::class)
             @JvmStatic
@@ -361,13 +367,11 @@ class EternalX509Certificate(private val delegate: X509Certificate) : X509Certif
 
 }
 
-private val json = Json { ignoreUnknownKeys = true }
+internal val json = Json { ignoreUnknownKeys = true }
 
-
-fun HttpClientEngine.setup() =
-    HttpClient(this) {
+fun HttpClientConfig<*>.setup(proxyUrl: String?) =
+    apply {
         install(HttpCache)
-        install(ContentNegotiation) {
-            json(json)
-        }
+        install(ContentNegotiation) { json(json) }
+        engine { proxyUrl?.let { proxy = ProxyBuilder.http(it) } }
     }

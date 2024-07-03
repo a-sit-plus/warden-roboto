@@ -119,3 +119,19 @@ out the attestation record.
 #### 1.5.1
 - dependency updated
 - correctly expose guava as api dependency
+
+#### 1.5.2
+- support HTTP proxy for fetching Android Revocation list
+- Dependency Updates:
+  -  Kotlin 2.0.0
+  -  bouncycastle:  1.78.1!!
+  -  coroutines:    1.8.1
+  -  datetime:      0.6.0
+  -  kmmresult:     1.6.1
+  -  kotest:        5.9.1!!
+  -  kotlin:        2.0.0
+  -  ksp:           1.0.22
+  -  ktor:          2.3.11
+  -  napier:        2.7.1
+  -  nexus:         1.3.0
+  -  serialization: 1.7.1

@@ -94,7 +94,8 @@ AndroidAttestationConfiguration(
     verificationSecondsOffset = -300,       //OPTIONAL, defaults to 0
     disableHardwareAttestation = false,     //OPTIONAL, defaults to false
     enableNougatAttestation = false,        //OPTIONAL, defaults to false
-    enableSoftwareAttestation = false       //OPTIONAL, defaults to false
+    enableSoftwareAttestation = false,      //OPTIONAL, defaults to false
+    httpProxy = null                        //OPTIONAL HTTP proxy url, such as http://proxy.domain:12345, defaults to null for no proxy
 )
 ```
 

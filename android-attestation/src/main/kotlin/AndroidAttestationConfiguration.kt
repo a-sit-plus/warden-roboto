@@ -162,7 +162,12 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
      */
     val enableSoftwareAttestation: Boolean = false,
 
-    ) {
+    /**
+     * HTTP Proxy URL formatted as `http(s)://proxy-domain:port`
+     */
+    val httpProxy: String? = null
+
+) {
 
     /**
      * Convenience constructor to attest a single app1
@@ -249,7 +254,12 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
          * Enabling this flag, while keeping [disableHardwareAttestation] `true` makes is possible to instantiate both a
          * [HardwareAttestationChecker] and a [SoftwareAttestationChecker].
          */
-        enableSoftwareAttestation: Boolean = false
+        enableSoftwareAttestation: Boolean = false,
+
+        /**
+         * HTTP Proxy URL formatted as `http(s)://proxy-domain:port`
+         */
+        httpProxy: String? = null
     ) : this(
         listOf(singleApp),
         androidVersion = androidVersion,
@@ -263,7 +273,8 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         verificationSecondsOffset = verificationSecondsOffset,
         disableHardwareAttestation = disableHardwareAttestation,
         enableNougatAttestation = enableNougatAttestation,
-        enableSoftwareAttestation = enableSoftwareAttestation
+        enableSoftwareAttestation = enableSoftwareAttestation,
+        httpProxy = httpProxy
     )
 
     /**
@@ -359,6 +370,11 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
          * List of applications, which can be attested
          */
         apps: List<AppData>,
+
+        /**
+         * HTTP Proxy URL formatted as `http(s)://proxy-domain:port`
+         */
+        httpProxy: String? = null
     ) : this(
         applications = apps,
         androidVersion = version,
@@ -372,7 +388,8 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         verificationSecondsOffset = verificationSecondsOffset,
         disableHardwareAttestation = disableHardwareAttestation,
         enableNougatAttestation = enableNougatAttestation,
-        enableSoftwareAttestation = enableSoftwareAttestation
+        enableSoftwareAttestation = enableSoftwareAttestation,
+        httpProxy = httpProxy,
     )
 
     /**
@@ -511,6 +528,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         private var disableHwAttestation: Boolean = false
         private var enableSwAttestation: Boolean = false
         private var enableNougatAttestation: Boolean = false
+        private var httpProxy: String? = null
 
         /**
          * specifies a minimum Android version
@@ -587,6 +605,11 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
          */
         fun enableNougatAttestation() = apply { enableNougatAttestation = true }
 
+        /**
+         * @see AndroidAttestationConfiguration.httpProxy
+         */
+        fun httpProxy(url: String) = apply { httpProxy = url }
+
         fun build() = AndroidAttestationConfiguration(
             applications = applications,
             androidVersion = androidVersion,
@@ -600,7 +623,8 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
             verificationSecondsOffset = verificationSecondsOffset,
             disableHardwareAttestation = disableHwAttestation,
             enableSoftwareAttestation = enableSwAttestation,
-            enableNougatAttestation = enableNougatAttestation
+            enableNougatAttestation = enableNougatAttestation,
+            httpProxy = httpProxy,
         )
 
     }

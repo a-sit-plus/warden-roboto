@@ -26,6 +26,9 @@ sourceSets.test {
     kotlin {
         srcDir("src/test/kotlin/data")
     }
+    java {
+        srcDirs("${project.rootDir}/http-proxy/src/main/java")
+    }
     resources {
         srcDirs(
             rootProject.layout.projectDirectory.dir("android-key-attestation").dir("server").dir("src").dir("test")
@@ -37,8 +40,6 @@ sourceSets.test {
 
 
 dependencies {
-
-    testImplementation(ktor("client-mock"))
     implementation(bouncycastle("bcpkix", "jdk18on"))
     implementation(ktor("client-core"))
     implementation(ktor("client-content-negotiation"))
@@ -51,6 +52,11 @@ dependencies {
     api("com.google.protobuf:protobuf-javalite:3.25.1")
 
     testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
+    testImplementation("io.netty:netty-all:4.1.36.Final")
+    testImplementation("commons-cli:commons-cli:1.4")
+    testImplementation("ch.qos.logback:logback-classic:1.2.3")
+    testImplementation("ch.qos.logback:logback-access:1.2.3")
+    testImplementation(ktor("client-mock"))
 }
 
 
