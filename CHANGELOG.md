@@ -123,6 +123,7 @@ out the attestation record.
 #### 1.5.2
 - support HTTP proxy for fetching Android Revocation list
 - Dependency Updates:
+  -  Java 17
   -  Kotlin 2.0.0
   -  bouncycastle:  1.78.1!!
   -  coroutines:    1.8.1
