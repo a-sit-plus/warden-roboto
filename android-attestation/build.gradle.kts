@@ -148,5 +148,5 @@ signing {
     val signingKey: String? by project
     val signingPassword: String? by project
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    publishing.publications.forEach { sign(it) }
+    sign(publishing.publications)
 }
