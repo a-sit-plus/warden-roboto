@@ -19,11 +19,11 @@ jobs:
         if: success() || failure()
         with:
           name: All Tests
-          path: android-attestation/build/test-results/**/TEST*.xml
+          path: warden-roboto/build/test-results/**/TEST*.xml
           reporter: java-junit
       - name: Upload jar
         uses: actions/upload-artifact@v3
         with:
-          name: android-attestation
+          name: warden-roboto
           path: |
             build/libs/*jar

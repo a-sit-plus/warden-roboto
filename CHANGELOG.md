@@ -136,3 +136,12 @@ out the attestation record.
   -  napier:        2.7.1
   -  nexus:         1.3.0
   -  serialization: 1.7.1
+
+### 1.6.0
+- Rebrand to _WARDEN-roboto_
+- Update to latest upstream attestation code
+  - `rollbackResistant` -> `rollbackResistance`
+  - Dependency Updates
+    - Guava: 33.2.1-jre
+    - autovalue: 1.11.0
+    - protobuf-javalite: 4.27.0

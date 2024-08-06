@@ -1,4 +1,4 @@
-rootProject.name = "android-attestation-root"
+rootProject.name = "WARDEN-roboto-root"
 
 pluginManagement {
     repositories {
@@ -11,5 +11,5 @@ pluginManagement {
     }
 }
 
-include("android-attestation")
+include("warden-roboto")
 include("attestation-diag")

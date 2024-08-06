@@ -1,14 +1,22 @@
-# Android  Attestation Library
+<div align="center">
+
+![WARDEN-roboto](warden-roboto.png)
+
+# Server-Side Android Attestation Library
+
+[![A-SIT Plus Official](https://img.shields.io/badge/A--SIT_Plus-official-005b79?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNDMuNzYyODYgMTg0LjgxOTk5Ij48ZGVmcz48Y2xpcFBhdGggaWQ9ImEiIGNsaXBQYXRoVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNMCA1OTUuMjhoODQxLjg5VjBIMFoiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjYSkiIHRyYW5zZm9ybT0ibWF0cml4KDEuMzMzMzMzMyAwIDAgLTEuMzMzMzMzMyAtNDgyLjI1IDUxNy41MykiPjxwYXRoIGZpbGw9IiMwMDViNzkiIGQ9Ik00MTUuNjcgMjQ5LjUzYy03LjE1LjA4LTEzLjk0IDEtMjAuMTcgMi43NWE1Mi4zMyA1Mi4zMyAwIDAgMC0xNy40OCA4LjQ2IDQwLjQzIDQwLjQzIDAgMCAwLTExLjk2IDE0LjU2Yy0yLjY4IDUuNDEtNC4xNCAxMS44NC00LjM1IDE5LjA5bC0uMDIgNi4xMnYyLjE3YS43MS43MSAwIDAgMCAuNy43M2gxNi41MmMuMzkgMCAuNy0uMzIuNzEtLjdsLjAxLTIuMmMwLTIuNi4wMi01LjgyLjAzLTYuMDcuMi00LjYgMS4yNC04LjY2IDMuMDgtMTIuMDZhMjguNTIgMjguNTIgMCAwIDEgOC4yMy05LjU4IDM1LjI1IDM1LjI1IDAgMCAxIDExLjk2LTUuNTggNTUuMzggNTUuMzggMCAwIDEgMTIuNTgtMS43NmM0LjMyLjEgOC42LjcgMTIuNzQgMS44YTM1LjA3IDM1LjA3IDAgMCAxIDExLjk2IDUuNTcgMjguNTQgMjguNTQgMCAwIDEgOC4yNCA5LjU3YzEuOTYgMy42NCAzIDguMDIgMy4xMiAxMy4wMnYyNC4wOUgzNjIuNGEuNy43IDAgMCAwLS43MS43VjMzNWMwIDguNDMuMDEgOC4wNS4wMSA4LjE0LjIgNy4zIDEuNjcgMTMuNzcgNC4zNiAxOS4yMmE0MC40MyA0MC40MyAwIDAgMCAxMS45NiAxNC41N2M1IDMuNzYgMTAuODcgNi42MSAxNy40OCA4LjQ2YTc3LjUgNzcuNSAwIDAgMCAyMC4wMiAyLjc3YzcuMTUtLjA3IDEzLjk0LTEgMjAuMTctMi43NGE1Mi4zIDUyLjMgMCAwIDAgMTcuNDgtOC40NiA0MC40IDQwLjQgMCAwIDAgMTEuOTUtMTQuNTdjMS42Mi0zLjI2IDMuNzctMTAuMDQgMy43Ny0xNC42OCAwLS4zOC0uMTctLjc0LS41NC0uODJsLTE2Ljg5LS40Yy0uMi0uMDQtLjM0LjM0LS4zNC41NCAwIC4yNy0uMDMuNC0uMDYuNi0uNSAyLjgyLTEuMzggNS40LTIuNjEgNy42OWEyOC41MyAyOC41MyAwIDAgMS04LjI0IDkuNTggMzUuMDEgMzUuMDEgMCAwIDEtMTEuOTYgNS41NyA1NS4yNSA1NS4yNSAwIDAgMS0xMi41NyAxLjc3Yy00LjMyLS4xLTguNjEtLjcxLTEyLjc1LTEuOGEzNS4wNSAzNS4wNSAwIDAgMS0xMS45Ni01LjU3IDI4LjUyIDI4LjUyIDAgMCAxLTguMjMtOS41OGMtMS44Ni0zLjQ0LTIuOS03LjU1LTMuMDktMTIuMmwtLjAxLTcuNDdoODkuMTZhLjcuNyAwIDAgMCAuNy0uNzJ2LTM5LjVjLS4xLTcuNjUtMS41OC0xNC40LTQuMzgtMjAuMDZhNDAuNCA0MC40IDAgMCAwLTExLjk1LTE0LjU2IDUyLjM3IDUyLjM3IDAgMCAwLTE3LjQ4LTguNDcgNzcuNTYgNzcuNTYgMCAwIDAtMjAuMDEtMi43N1oiLz48cGF0aCBmaWxsPSIjY2U0OTJlIiBkPSJNNDE5LjM4IDI4MC42M2gtNy41N2EuNy43IDAgMCAwLS43MS43MXYxNS40MmE4LjE3IDguMTcgMCAwIDAtMy43OCA2LjkgOC4yOCA4LjI4IDAgMCAwIDE2LjU0IDAgOC4yOSA4LjI5IDAgMCAwLTMuNzYtNi45di0xNS40MmEuNy43IDAgMCAwLS43Mi0uNzEiLz48L2c%2BPC9zdmc%2B&logoColor=white&labelColor=white)](https://a-sit-plus.github.io)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-brightgreen.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0) 
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![Java](https://img.shields.io/badge/java-17-blue.svg?logo=OPENJDK)
-![Build artifacts](https://github.com/a-sit-plus/android-attestation/actions/workflows/gradle-build.yml/badge.svg)
-[![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/android-attestation)](https://mvnrepository.com/artifact/at.asitplus/android-attestation/)
+![Build artifacts](https://github.com/a-sit-plus/warden-roboto/actions/workflows/gradle-build.yml/badge.svg)
+[![Maven Central](https://img.shields.io/maven-central/v/at.asitplus/warden-roboto)](https://mvnrepository.com/artifact/at.asitplus/warden-roboto/)
 
-This Kotlin library provides a convenient API (a single function, actually) to remotely attest the integrity of an Android device, its OS and a specific application.
+</div>
+
+This Kotlin library provides a convenient API (a single function, actually) to remotely attest the integrity of an Android device, its OS, and a specific application.
 It is intended to be integrated into back-end services requiring authentic, unmodified mobile clients (but it also works in other settings, such as peer-to-peer-scenarios).
 
-Full API docs are available [here](https://a-sit-plus.github.io/android-attestation).
+Full API docs are available [here](https://a-sit-plus.github.io/warden-roboto).
 
 This library's core logic is based off [code from Google](https://github.com/google/android-key-attestation) (and actually directly integrates it), such that it can easily keep up with upstream for the lower-level functionality.
 Because of this, it only targets the JVM, although a KMP rewrite (also targeting JS/Node) is possible.
@@ -24,7 +32,7 @@ for end-to-end-tests, for example.
 
 ## Development
 
-See [DEVELOPMENT.md](https://github.com/a-sit-plus/android-attestation/blob/main/DEVELOPMENT.md)
+See [DEVELOPMENT.md](https://github.com/a-sit-plus/warden-roboto/blob/main/DEVELOPMENT.md)
 
 ## Background
 Android devices with a TEE allow for cryptographic keys to be generated in hardware. These keys can only be used, but not exported and are safe from extraction due protective hardware measures. The Android Keystore API expose this hardware-based management of cryptographic material and also allows for generating certficates for such keys, which contain custom Extension that indicate the location of a key (hardware or software).
@@ -40,19 +48,19 @@ Written in Kotlin, plays nicely with Java (cf. `@JvmOverloads`), published at ma
 
 ```kotlin
  dependencies {
-     implementation("at.asitplus:android-attestation:$version")
+     implementation("at.asitplus:warden-roboto:$version")
  }
 ```
 
 Three flavours of attestation are implemented:
-* Hardware attestation through [HardwareAttestationChecker](https://github.com/a-sit-plus/android-attestation/blob/main/android-attestation/src/main/kotlin/AndroidAttestationChecker.kt)
+* Hardware attestation through [HardwareAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/AndroidAttestationChecker.kt)
   (this is what you typically want)
-* Software attestation through [SoftwareAttestationChecker](https://github.com/a-sit-plus/android-attestation/blob/main/android-attestation/src/main/kotlin/SoftwareAttestationChecker.kt)
+* Software attestation through [SoftwareAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/SoftwareAttestationChecker.kt)
   (you typically don't want to use this)
-* Nougat hybrid attestation through [NougatHybridAttestationChecker](https://github.com/a-sit-plus/android-attestation/blob/main/android-attestation/src/main/kotlin/NougatHybridAttestationChecker.kt)
+* Nougat hybrid attestation through [NougatHybridAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/NougatHybridAttestationChecker.kt)
   (you may require this to support legacy devices originally shipped with Android 7 (Nougat))
 
-All of these extend [AndroidAttestationChecker](https://github.com/a-sit-plus/android-attestation/blob/main/android-attestation/src/main/kotlin/AndroidAttestationChecker.kt)
+All of these extend [AndroidAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/AndroidAttestationChecker.kt)
 
 
 ### Configuration
@@ -140,7 +148,7 @@ val attestationRecord =  checker.verifyAttestation(attestationCertChain, Date(),
 ```
 
 ## Debugging
-The module [attestation-diag](https://github.com/a-sit-plus/android-attestation/blob/main/attestation-diag) contains a
+The module [attestation-diag](https://github.com/a-sit-plus/warden-roboto/blob/main/attestation-diag) contains a
 (very) simple command-line utility. It can be built using the `shadowJar` gradle task and pretty-prints attestation
 information contained in attestation certificates:
 ```shell
@@ -354,4 +362,9 @@ programme under grant agreement No 959072.
 </p>
 <p align="center">
 <img src="eu.svg" alt="EU flag">
+</p>
+
+<p align="center">
+The Apache License does not apply to the logos, (including the A-SIT logo) and the project/module name(s), as these are the sole property of
+A-SIT/A-SIT Plus GmbH and may not be used in derivative works without explicit permission!
 </p>

@@ -14,7 +14,7 @@ application {
 }
 
 dependencies {
-    implementation(project(":android-attestation"))
+    implementation(project(":warden-roboto"))
     implementation("com.google.guava:guava:33.0.0-jre")
     implementation("com.google.code.gson:gson:2.10.1")
 }
