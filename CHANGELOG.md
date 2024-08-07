@@ -145,3 +145,5 @@ out the attestation record.
     - Guava: 33.2.1-jre
     - autovalue: 1.11.0
     - protobuf-javalite: 4.27.0
+
+### 1.6.1-SNAPSHOT
