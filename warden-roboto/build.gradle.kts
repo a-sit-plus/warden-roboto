@@ -147,6 +147,35 @@ publishing {
                 artifactId = "android-attestation"
                 version = artifactVersion
 
+                pom {
+                    name.set("WARDEN-roboto")
+                    description.set("Server-Side Android Attestation Library")
+                    url.set("https://github.com/a-sit-plus/warden-roboto")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("JesusMcCloud")
+                            name.set("Bernd Prünster")
+                            email.set("bernd.pruenster@a-sit.at")
+                        }
+                        developer {
+                            id.set("nodh")
+                            name.set("Christian Kollmann")
+                            email.set("christian.kollmann@a-sit.at")
+                        }
+                    }
+                    scm {
+                        connection.set("scm:git:git@github.com:a-sit-plus/warden-roboto.git")
+                        developerConnection.set("scm:git:git@github.com:a-sit-plus/warden-roboto.git")
+                        url.set("https://github.com/a-sit-plus/warden-roboto")
+                    }
+                }
+
                 distributionManagement {
                     relocation {
                         // New artifact coordinates
