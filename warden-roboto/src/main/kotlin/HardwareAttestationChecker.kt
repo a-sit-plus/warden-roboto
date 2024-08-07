@@ -55,7 +55,7 @@ class HardwareAttestationChecker @JvmOverloads constructor(
     override val trustAnchors = attestationConfiguration.hardwareAttestationTrustAnchors
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: Int?) =
+    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: PatchLevel?) =
         teeEnforced().verifyAndroidVersion(versionOverride, osPatchLevel)
 
     @Throws(AttestationValueException::class)

@@ -95,7 +95,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
      * optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter.
      * Can be overridden for individual apps.
      */
-    private val patchLevel: PatchLevel? = null,
+    internal val patchLevel: PatchLevel? = null,
 
     /**
      * Set to `true` if *StrongBox* security level should be required.
@@ -432,7 +432,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter.
          */
-        private val patchLevelOverride: PatchLevel? = null,
+        internal val patchLevelOverride: PatchLevel? = null,
 
         ) {
         init {
@@ -441,7 +441,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         }
 
         /**
-         * Internal representation of the patch level as contained in the [com.google.android.attestation.ParsedAttestationRecord]
+         * Internal representation of the patch level as previously contained in the [com.google.android.attestation.ParsedAttestationRecord]
          */
         val osPatchLevel: Int? = patchLevelOverride?.asSingleInt
 

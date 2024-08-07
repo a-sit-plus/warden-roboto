@@ -1,9 +1,11 @@
 import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
+import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
 
 group = "at.asitplus"
-version = "1.5.2"
+val artifactVersion= "1.6.0"
+version = artifactVersion
 
 plugins {
     kotlin("jvm")
@@ -15,7 +17,7 @@ plugins {
 
 sourceSets.main {
     java {
-        srcDirs("${project.rootDir}/android-key-attestation/server/src/main/java")
+        srcDirs("${project.rootDir}/android-key-attestation/src/main/java")
         exclude("com/android/example/", "com/google/android/attestation/CertificateRevocationStatus.java")
     }
 }
@@ -31,7 +33,7 @@ sourceSets.test {
     }
     resources {
         srcDirs(
-            rootProject.layout.projectDirectory.dir("android-key-attestation").dir("server").dir("src").dir("test")
+            rootProject.layout.projectDirectory.dir("android-key-attestation").dir("src").dir("test")
                 .dir("resources"),
             "src/test/resources"
         )
@@ -46,10 +48,10 @@ dependencies {
     implementation(ktor("serialization-kotlinx-json"))
     implementation(ktor("client-cio"))
     implementation("com.google.errorprone:error_prone_annotations:2.24.1")
-    api("com.google.guava:guava:33.0.0-jre")
-    implementation("com.google.auto.value:auto-value-annotations:1.10.4")
-    annotationProcessor ("com.google.auto.value:auto-value:1.10.4")
-    api("com.google.protobuf:protobuf-javalite:3.25.1")
+    api("com.google.guava:guava:33.2.1-jre")
+    implementation("com.google.auto.value:auto-value-annotations:1.11.0")
+    annotationProcessor ("com.google.auto.value:auto-value:1.11.0")
+    api("com.google.protobuf:protobuf-javalite:4.27.0")
 
     testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
     testImplementation("io.netty:netty-all:4.1.36.Final")
@@ -69,10 +71,9 @@ tasks.dokkaHtml {
 
     val moduleDesc = File("$rootDir/dokka-tmp.md").also { it.createNewFile() }
     val readme =
-        File("${rootDir}/README.md").readText().replaceFirst("# ", "")
-    val moduleTitle = readme.lines().first()
-    moduleDesc.writeText("# Module $readme")
-    moduleName.set(moduleTitle)
+        File("${rootDir}/README.md").readText()
+    moduleDesc.writeText("# Module ${project.name}\n\n$readme")
+    moduleName.set(project.name)
 
     dokkaSourceSets {
         named("main") {
@@ -108,12 +109,12 @@ publishing {
     publications {
         register("mavenJava", MavenPublication::class) {
             from(components["java"])
-            artifact(sourcesJar.get())
-            artifact(javadocJar.get())
+            if (this.name != "relocation") artifact(sourcesJar.get())
+            if (this.name != "relocation") artifact(javadocJar.get())
             pom {
-                name.set("Android Attestation")
-                description.set("Server-Side Android attestation library")
-                url.set("https://github.com/a-sit-plus/android-attestation")
+                name.set("WARDEN-roboto")
+                description.set("Server-Side Android Attestation Library")
+                url.set("https://github.com/a-sit-plus/warden-roboto")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
@@ -133,9 +134,26 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git@github.com:a-sit-plus/android-attestation.git")
-                    developerConnection.set("scm:git:git@github.com:a-sit-plus/android-attestation.git")
-                    url.set("https://github.com/a-sit-plus/android-attestation")
+                    connection.set("scm:git:git@github.com:a-sit-plus/warden-roboto.git")
+                    developerConnection.set("scm:git:git@github.com:a-sit-plus/warden-roboto.git")
+                    url.set("https://github.com/a-sit-plus/warden-roboto")
+                }
+            }
+        }
+        //REMOVE ME AFTER REBRANDED ARTIFACT HAS BEEN PUBLISHED
+        create<MavenPublication>("relocation") {
+            pom {
+                // Old artifact coordinates
+                artifactId = "android-attestation"
+                version = artifactVersion
+
+                distributionManagement {
+                    relocation {
+                        // New artifact coordinates
+                        artifactId = "warden-roboto"
+                        version = artifactVersion
+                        message = "artifactId has been changed"
+                    }
                 }
             }
         }

@@ -29,6 +29,7 @@ import java.security.PublicKey
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
 import java.security.cert.X509Certificate
+import java.time.YearMonth
 import java.util.*
 
 abstract class AndroidAttestationChecker(
@@ -157,10 +158,10 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     protected abstract fun ParsedAttestationRecord.verifyAndroidVersion(
         versionOverride: Int? = null,
-        osPatchLevel: Int?
+        osPatchLevel: PatchLevel?
     )
 
-    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: Int?) {
+    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: PatchLevel?) {
         runCatching {
 
             (versionOverride ?: attestationConfiguration.androidVersion)?.let {
@@ -170,8 +171,8 @@ abstract class AndroidAttestationChecker(
                 )
             }
 
-            (patchLevel ?: attestationConfiguration.osPatchLevel)?.let {
-                if ((osPatchLevel().get()) < it) throw AttestationValueException(
+            (patchLevel ?: attestationConfiguration.patchLevel)?.let {
+                if ((osPatchLevel().get()).isBefore(YearMonth.of(it.year, it.month))) throw AttestationValueException(
                     "Patch level not supported",
                     reason = AttestationValueException.Reason.OS_VERSION
                 )
@@ -220,7 +221,7 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     protected fun AuthorizationList.verifyRollbackResistance() {
         if (attestationConfiguration.requireRollbackResistance)
-            if (!rollbackResistant()) throw AttestationValueException(
+            if (!rollbackResistance()) throw AttestationValueException(
                 "No rollback resistance",
                 reason = AttestationValueException.Reason.ROLLBACK_RESISTANCE
             )
@@ -269,7 +270,7 @@ abstract class AndroidAttestationChecker(
             it.entries.firstOrNull { (_, result) -> result.isSuccess } ?: it.values.first().exceptionOrNull()!!
                 .let { throw it }
         }.key
-        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.osPatchLevel)
+        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.patchLevelOverride)
         return parsedAttestationRecord
     }
 
