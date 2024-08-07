@@ -114,7 +114,7 @@ publishing {
             pom {
                 name.set("WARDEN-roboto")
                 description.set("Server-Side Android Attestation Library")
-                url.set("https://github.com/a-sit-plus/android-attestation")
+                url.set("https://github.com/a-sit-plus/warden-roboto")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
