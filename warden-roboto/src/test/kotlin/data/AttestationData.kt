@@ -19,7 +19,7 @@ internal val rsaKeyFactory = KeyFactory.getInstance("RSA")
 class AttestationData(
     val name: String, challengeB64: String, val attestationProofB64: List<String>,
     isoDate: String,
-    pubKeyB64: String? = null,
+    val pubKeyB64: String? = null,
     val packageOverride: String? = null,
     val isProductionOverride: Boolean? = null
 ) {
