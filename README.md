@@ -357,6 +357,12 @@ java -jar attestation-diag-0.0.1-all.jar -f cert.pem
 **Note:** Pretty-printing is done using Gson (in order to leave the upstream code untouched), which also means that it relies
 on reflective access to platform types. Hence, this jar will only run on the same Java version it was built with!
 
+
+## Contributing
+External contributions are greatly appreciated!
+Just be sure to observe the contribution guidelines (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+
 <br>
 
 ---
