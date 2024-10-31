@@ -20,9 +20,9 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
 
     init {
         if (!attestationConfiguration.enableNougatAttestation) throw object :
-            AndroidAttestationException("Hardware attestation is disabled!", null) {}
+            AndroidAttestationException("Nougat attestation is disabled!", null) {}
         if (attestationConfiguration.hardwareAttestationTrustAnchors.isEmpty()) throw object :
-            AndroidAttestationException("No hardware attestation trust anchors configured", null) {}
+            AndroidAttestationException("No Nougat (Software) attestation trust anchors configured", null) {}
     }
 
     @Throws(AttestationValueException::class)
@@ -57,4 +57,8 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced().verifyRollbackResistance()
+
+    override fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Date) {
+        //impossible
+    }
 }

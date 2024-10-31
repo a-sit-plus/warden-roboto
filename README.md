@@ -58,7 +58,10 @@ Three flavours of attestation are implemented:
 * Software attestation through [SoftwareAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/SoftwareAttestationChecker.kt)
   (you typically don't want to use this)
 * Nougat hybrid attestation through [NougatHybridAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/NougatHybridAttestationChecker.kt)
-  (you may require this to support legacy devices originally shipped with Android 7 (Nougat))
+  (you may require this to support legacy devices originally shipped with Android 7 (Nougat)). Does **NOT** support checking:
+    * Verified boot state and system image integrity
+    * Android version
+    * Attestation statement creation time
 
 All of these extend [AndroidAttestationChecker](https://github.com/a-sit-plus/warden-roboto/blob/main/warden-roboto/src/main/kotlin/AndroidAttestationChecker.kt)
 
@@ -100,6 +103,7 @@ AndroidAttestationConfiguration(
     hardwareAttestationTrustAnchors = linkedSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS), //OPTIONAL, defaults  shown here
     softwareAttestationTrustAnchors = linkedSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS), //OPTIONAL, defaults  shown here
     verificationSecondsOffset = -300,       //OPTIONAL, defaults to 0
+    attestationStatementValiditySeconds = 0,//OPTIONAL, defaults to 300. Affects timestamp checks against the attestation statement creation, not the certificate.
     disableHardwareAttestation = false,     //OPTIONAL, defaults to false
     enableNougatAttestation = false,        //OPTIONAL, defaults to false
     enableSoftwareAttestation = false,      //OPTIONAL, defaults to false
@@ -107,7 +111,7 @@ AndroidAttestationConfiguration(
 )
 ```
 
-Additionally, a builder is available for smoohter java interoperability:
+Additionally, a builder is available for smoother java interoperability:
 
 ```java
 List<AndroidAttestationConfiguration.AppData> apps = new LinkedList<>();

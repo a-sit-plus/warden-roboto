@@ -47,7 +47,7 @@ abstract class AndroidAttestationChecker(
         runCatching { verifyRootCertificate(verificationDate) }
             .onFailure {
                 throw if (it is CertificateInvalidException) it else CertificateInvalidException(
-                    "could not verify root certificate",
+                    "could not verify root certificate (valid from: ${last().notBefore} to ${last().notAfter}), verification date: $verificationDate",
                     cause = it,
                     if ((it is CertificateExpiredException) || (it is CertificateNotYetValidException)) CertificateInvalidException.Reason.TIME else CertificateInvalidException.Reason.TRUST
                 )
@@ -114,7 +114,7 @@ abstract class AndroidAttestationChecker(
 
     protected abstract val trustAnchors: Collection<PublicKey>
 
-    private fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Date = Date()) {
+    protected open fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Date = Date()) {
         val createdAt =
             teeEnforced().creationDateTime().getOrNull() ?: softwareEnforced().creationDateTime().getOrNull()
         if (createdAt == null) throw AttestationValueException(
@@ -122,7 +122,8 @@ abstract class AndroidAttestationChecker(
             reason = AttestationValueException.Reason.TIME
         )
         val calendar = Calendar.getInstance()
-        calendar.time = verificationDate.let { java.util.Date(it.time + attestationConfiguration.verificationSecondsOffset * 1000) }
+        calendar.time = verificationDate
+        calendar.add(Calendar.SECOND, attestationConfiguration.verificationSecondsOffset)
         var checkTime = calendar.toInstant()
         val difference = Duration.between(createdAt, checkTime)
         if (difference.isNegative) throw AttestationValueException(
@@ -272,7 +273,9 @@ abstract class AndroidAttestationChecker(
         expectedChallenge: ByteArray
     ): ParsedAttestationRecord {
         val calendar = Calendar.getInstance()
-        calendar.time = verificationDate.let { Date(it.time + attestationConfiguration.verificationSecondsOffset * 1000) }
+        calendar.time = verificationDate
+        calendar.add(Calendar.SECOND, attestationConfiguration.verificationSecondsOffset)
+
         certificates.verifyCertificateChain(calendar.time)
 
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
@@ -284,7 +287,7 @@ abstract class AndroidAttestationChecker(
             "verification of attestation challenge failed",
             reason = AttestationValueException.Reason.CHALLENGE
         )
-        parsedAttestationRecord.verifyAttestationTime(verificationDate)
+        kotlin.runCatching {  parsedAttestationRecord.verifyAttestationTime(verificationDate)}.onFailure { it.printStackTrace(); throw it }
         parsedAttestationRecord.verifySecurityLevel()
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()

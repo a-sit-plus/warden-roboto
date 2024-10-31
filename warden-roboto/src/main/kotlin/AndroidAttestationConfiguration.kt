@@ -143,7 +143,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
      * Validity of the attestation statement in seconds. This is not the certificate validity!
      * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
      */
-    val attestationStatementValiditySeconds: Int = 10 * 60,
+    val attestationStatementValiditySeconds: Int = 5 * 60,
 
     /**
      * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what

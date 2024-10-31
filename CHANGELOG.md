@@ -175,11 +175,13 @@ out the attestation record.
         - autovalue: 1.11.0
         - protobuf-javalite: 4.27.0
 
-### 1.7.0 Breaking Changes Ahead!
+### 1.7.0
+
+**Breaking Changes Ahead!**
 
 - Add `AttestationValueException.Reason.TIME` to indicate too far off or missing attestation statement creation
   time inside the attestation statement (in contrast to Certificate validity issues)
 - Add `attestationStatementValiditySeconds` to Android attestation configuration, to set a custom attestation statement
   validity.
-  Defaults to 10 minutes (i.e. 600)
+  Defaults to 5 minutes (i.e. 300)
 - Fix verification time calculation
