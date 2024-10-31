@@ -287,7 +287,7 @@ abstract class AndroidAttestationChecker(
             "verification of attestation challenge failed",
             reason = AttestationValueException.Reason.CHALLENGE
         )
-        kotlin.runCatching {  parsedAttestationRecord.verifyAttestationTime(verificationDate)}.onFailure { it.printStackTrace(); throw it }
+        parsedAttestationRecord.verifyAttestationTime(verificationDate)
         parsedAttestationRecord.verifySecurityLevel()
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()
