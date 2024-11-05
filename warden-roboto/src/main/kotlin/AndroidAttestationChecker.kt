@@ -30,6 +30,7 @@ import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
 import java.security.cert.X509Certificate
 import java.time.Duration
+import java.time.Instant
 import java.time.YearMonth
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -114,17 +115,14 @@ abstract class AndroidAttestationChecker(
 
     protected abstract val trustAnchors: Collection<PublicKey>
 
-    protected open fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Date = Date()) {
+    protected open fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Instant) {
         val createdAt =
             teeEnforced().creationDateTime().getOrNull() ?: softwareEnforced().creationDateTime().getOrNull()
         if (createdAt == null) throw AttestationValueException(
             "Attestation statement creation time missing",
             reason = AttestationValueException.Reason.TIME
         )
-        val calendar = Calendar.getInstance()
-        calendar.time = verificationDate
-        calendar.add(Calendar.SECOND, attestationConfiguration.verificationSecondsOffset)
-        var checkTime = calendar.toInstant()
+        var checkTime = verificationDate.plusSeconds(attestationConfiguration.verificationSecondsOffset.toLong())
         val difference = Duration.between(createdAt, checkTime)
         if (difference.isNegative) throw AttestationValueException(
             "Attestation statement creation time too far in the future: $createdAt, check time: $checkTime",
@@ -287,7 +285,7 @@ abstract class AndroidAttestationChecker(
             "verification of attestation challenge failed",
             reason = AttestationValueException.Reason.CHALLENGE
         )
-        parsedAttestationRecord.verifyAttestationTime(verificationDate)
+        parsedAttestationRecord.verifyAttestationTime(verificationDate.toInstant())
         parsedAttestationRecord.verifySecurityLevel()
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()

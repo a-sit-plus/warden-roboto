@@ -11,6 +11,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import java.time.Instant
 import java.util.*
 
 class NougatHybridAttestationChecker @JvmOverloads constructor(
@@ -58,7 +59,7 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced().verifyRollbackResistance()
 
-    override fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Date) {
+    override fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Instant) {
         //impossible
     }
 }

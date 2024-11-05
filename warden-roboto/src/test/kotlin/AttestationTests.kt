@@ -14,7 +14,8 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.*
 import org.bouncycastle.util.encoders.Base64
 import java.sql.Date
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -515,7 +516,7 @@ class AttestationTests : FreeSpec() {
                                         recordedAttestation.attestationCertChain,
                                         Date.from(
                                             recordedAttestation.verificationDate.toInstant()
-                                                .minus(Duration.ofDays(30000))
+                                                .minus(java.time.Duration.ofDays(30000))
                                         ),
                                         recordedAttestation.challenge
                                     )
@@ -528,7 +529,7 @@ class AttestationTests : FreeSpec() {
                                         recordedAttestation.attestationCertChain,
                                         Date.from(
                                             recordedAttestation.verificationDate.toInstant()
-                                                .plus(Duration.ofDays(30000))
+                                                .plus(java.time.Duration.ofDays(30000))
                                         ),
                                         recordedAttestation.challenge
                                     )
@@ -632,7 +633,8 @@ fun attestationService(
     androidPatchLevel: PatchLevel? = PatchLevel(2021, 8),
     requireStrongBox: Boolean = false,
     unlockedBootloaderAllowed: Boolean = false,
-    requireRollbackResistance: Boolean = false
+    requireRollbackResistance: Boolean = false,
+    attestationStatementValiditiy: Duration = 5.minutes
 ) = HardwareAttestationChecker(
     AndroidAttestationConfiguration(
         listOf(
@@ -646,7 +648,9 @@ fun attestationService(
         patchLevel = androidPatchLevel,
         requireStrongBox = requireStrongBox,
         allowBootloaderUnlock = unlockedBootloaderAllowed,
-        requireRollbackResistance = requireRollbackResistance
+        requireRollbackResistance = requireRollbackResistance,
+        attestationStatementValiditySeconds = attestationStatementValiditiy.inWholeSeconds.toInt()
+
     )
 )
 
