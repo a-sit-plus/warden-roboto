@@ -71,7 +71,13 @@ class AttestationValueException(message: String?, cause: Throwable? = null, val 
          * **Note** that this reason might be shadowed by a [CertificateInvalidException] with [CertificateInvalidException.Reason.TRUST]
          * since software and hardware attestation use different trust anchors
          */
-        SEC_LEVEL
+        SEC_LEVEL,
+
+
+        /**
+         * Indicates that the attestation statement creation time is too far off or missing
+         */
+        TIME
     }
 }
 

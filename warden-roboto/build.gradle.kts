@@ -1,4 +1,5 @@
 import at.asitplus.gradle.bouncycastle
+import at.asitplus.gradle.datetime
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
@@ -59,6 +60,7 @@ dependencies {
     testImplementation("ch.qos.logback:logback-classic:1.2.3")
     testImplementation("ch.qos.logback:logback-access:1.2.3")
     testImplementation(ktor("client-mock"))
+    testImplementation(datetime())
 }
 
 

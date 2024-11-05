@@ -14,7 +14,8 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.*
 import org.bouncycastle.util.encoders.Base64
 import java.sql.Date
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -76,7 +77,7 @@ class AttestationTests : FreeSpec() {
                     9mL1J1IXvmM=    
                     """
                 ),
-                isoDate = "2023-09-07T17:19:03.443Z",
+                isoDate = "2023-09-06T17:19:09Z",
                 pubKeyB64 = "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAuOwpW9boeY2+tihDBAja17fOToCT2mdgUV9HC1xyN8y1" +
                         "pxUTEGGmWxaiVgy49ktl4QooMwOJd8rqcz/uyt4/okE6RvR4cpezPQ/h53eERDoasmxC6wERwg2MfA0Lqo7pY79gGmc2" +
                         "RXdMdFmMjSDJ0zQclhFJR5/zJhiqtN/RY2nIV9B/urBgRVxwcAMBsQ59zu4SM6O1aomBqxM9+IuC5ylcxwRgWkqLgjIj" +
@@ -310,7 +311,7 @@ class AttestationTests : FreeSpec() {
                         ex0SdDrx+tWUDqG8At2JHA==
                         """
                     ),
-                    isoDate = "2023-04-15T00:00:00Z",
+                    isoDate = "2023-04-14T13:12:42Z",
                     pubKeyB64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEL3PdP8200NNz3h4p0bcwrPikiD5+s/qPXN/eHikTd8RnQiutcz4tqAq4NXgcmjLiEcNIOtkPTKi45ETDEoqPpA=="
                 ),
                 AttestationData(
@@ -384,7 +385,7 @@ class AttestationTests : FreeSpec() {
                         ex0SdDrx+tWUDqG8At2JHA==
                         """
                     ),
-                    isoDate = "2023-04-15T00:00:00Z",
+                    isoDate = "2023-04-14T14:31:42Z",
                     pubKeyB64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqs5NcBOKN40tu/5+NLFvGRMRcYF6KRksYoUmiwlKhhzbGaALzE2PerEM5wzNKeC6ESruZJRoBPuHn5D+HfoMkA=="
                 ),
 
@@ -515,7 +516,7 @@ class AttestationTests : FreeSpec() {
                                         recordedAttestation.attestationCertChain,
                                         Date.from(
                                             recordedAttestation.verificationDate.toInstant()
-                                                .minus(Duration.ofDays(30000))
+                                                .minus(java.time.Duration.ofDays(30000))
                                         ),
                                         recordedAttestation.challenge
                                     )
@@ -528,7 +529,7 @@ class AttestationTests : FreeSpec() {
                                         recordedAttestation.attestationCertChain,
                                         Date.from(
                                             recordedAttestation.verificationDate.toInstant()
-                                                .plus(Duration.ofDays(30000))
+                                                .plus(java.time.Duration.ofDays(30000))
                                         ),
                                         recordedAttestation.challenge
                                     )
@@ -632,7 +633,8 @@ fun attestationService(
     androidPatchLevel: PatchLevel? = PatchLevel(2021, 8),
     requireStrongBox: Boolean = false,
     unlockedBootloaderAllowed: Boolean = false,
-    requireRollbackResistance: Boolean = false
+    requireRollbackResistance: Boolean = false,
+    attestationStatementValiditiy: Duration = 5.minutes
 ) = HardwareAttestationChecker(
     AndroidAttestationConfiguration(
         listOf(
@@ -646,7 +648,9 @@ fun attestationService(
         patchLevel = androidPatchLevel,
         requireStrongBox = requireStrongBox,
         allowBootloaderUnlock = unlockedBootloaderAllowed,
-        requireRollbackResistance = requireRollbackResistance
+        requireRollbackResistance = requireRollbackResistance,
+        attestationStatementValiditySeconds = attestationStatementValiditiy.inWholeSeconds.toInt()
+
     )
 )
 

@@ -29,8 +29,11 @@ import java.security.PublicKey
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
 import java.security.cert.X509Certificate
+import java.time.Duration
+import java.time.Instant
 import java.time.YearMonth
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 abstract class AndroidAttestationChecker(
     protected val attestationConfiguration: AndroidAttestationConfiguration,
@@ -45,7 +48,7 @@ abstract class AndroidAttestationChecker(
         runCatching { verifyRootCertificate(verificationDate) }
             .onFailure {
                 throw if (it is CertificateInvalidException) it else CertificateInvalidException(
-                    "could not verify root certificate",
+                    "could not verify root certificate (valid from: ${last().notBefore} to ${last().notAfter}), verification date: $verificationDate",
                     cause = it,
                     if ((it is CertificateExpiredException) || (it is CertificateNotYetValidException)) CertificateInvalidException.Reason.TIME else CertificateInvalidException.Reason.TRUST
                 )
@@ -111,6 +114,28 @@ abstract class AndroidAttestationChecker(
     }
 
     protected abstract val trustAnchors: Collection<PublicKey>
+
+    protected open fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Instant) {
+        val createdAt =
+            teeEnforced().creationDateTime().getOrNull() ?: softwareEnforced().creationDateTime().getOrNull()
+        if (createdAt == null) throw AttestationValueException(
+            "Attestation statement creation time missing",
+            reason = AttestationValueException.Reason.TIME
+        )
+        var checkTime = verificationDate.plusSeconds(attestationConfiguration.verificationSecondsOffset.toLong())
+        val difference = Duration.between(createdAt, checkTime)
+        if (difference.isNegative) throw AttestationValueException(
+            "Attestation statement creation time too far in the future: $createdAt, check time: $checkTime",
+            reason = AttestationValueException.Reason.TIME
+        )
+
+        if (difference > Duration.ofSeconds(attestationConfiguration.attestationStatementValiditySeconds.toLong())) throw AttestationValueException(
+            "Attestation statement creation time too far in the past: $createdAt, check time: $checkTime, attestation statement validity in seconds: ${attestationConfiguration.attestationStatementValiditySeconds}",
+            reason = AttestationValueException.Reason.TIME
+        )
+
+
+    }
 
     @Throws(AttestationValueException::class)
     private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
@@ -248,6 +273,7 @@ abstract class AndroidAttestationChecker(
         val calendar = Calendar.getInstance()
         calendar.time = verificationDate
         calendar.add(Calendar.SECOND, attestationConfiguration.verificationSecondsOffset)
+
         certificates.verifyCertificateChain(calendar.time)
 
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
@@ -259,7 +285,7 @@ abstract class AndroidAttestationChecker(
             "verification of attestation challenge failed",
             reason = AttestationValueException.Reason.CHALLENGE
         )
-
+        parsedAttestationRecord.verifyAttestationTime(verificationDate.toInstant())
         parsedAttestationRecord.verifySecurityLevel()
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()

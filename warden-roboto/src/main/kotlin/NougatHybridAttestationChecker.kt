@@ -11,6 +11,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import java.time.Instant
 import java.util.*
 
 class NougatHybridAttestationChecker @JvmOverloads constructor(
@@ -20,9 +21,9 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
 
     init {
         if (!attestationConfiguration.enableNougatAttestation) throw object :
-            AndroidAttestationException("Hardware attestation is disabled!", null) {}
+            AndroidAttestationException("Nougat attestation is disabled!", null) {}
         if (attestationConfiguration.hardwareAttestationTrustAnchors.isEmpty()) throw object :
-            AndroidAttestationException("No hardware attestation trust anchors configured", null) {}
+            AndroidAttestationException("No Nougat (Software) attestation trust anchors configured", null) {}
     }
 
     @Throws(AttestationValueException::class)
@@ -57,4 +58,8 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyRollbackResistance() = teeEnforced().verifyRollbackResistance()
+
+    override fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Instant) {
+        //impossible
+    }
 }
