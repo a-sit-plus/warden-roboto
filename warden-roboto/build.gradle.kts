@@ -2,6 +2,7 @@ import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
+import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
 
 group = "at.asitplus"
 val artifactVersion= "1.7.2"
