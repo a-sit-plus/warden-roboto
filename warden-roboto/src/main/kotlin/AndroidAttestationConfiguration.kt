@@ -47,7 +47,7 @@ val DEFAULT_SOFTWARE_TRUST_ANCHORS = arrayOf(
  *
  * @param applications list of applications to be attested
  * @param androidVersion optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
- * **Caution:** Major Android versions increment in steps of thousands. I.e. Android 11 is specified as `11000`
+ * **Caution:** Major Android versions increment in steps of ten-thousands. I.e. Android 11 is specified as `110000`
  * Can be overridden for individual apps
  * @param patchLevel optional parameter. If set, attestation enforces Security patch level to be greater or equal to this parameter
  * @param requireStrongBox optional parameter. Set to `true` if *StrongBox* security level should be required
@@ -86,7 +86,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
 
     /**
      * optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
-     * **Caution:** Major Android versions increment in steps of thousands. I.e. Android 11 is specified as `11000`
+     * **Caution:** Major Android versions increment in steps of ten-thousands. I.e. Android 11 is specified as `110000`
      * Can be overridden for individual apps
      */
     val androidVersion: Int? = null,
@@ -186,7 +186,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
 
         /**
          * optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
-         * **Caution:** Major Android versions increment in steps of thousands. I.e. Android 11 is specified as `11000`
+         * **Caution:** Major Android versions increment in steps of ten-thousands. I.e. Android 11 is specified as `110000`
          * Can be overridden for individual apps
          */
         androidVersion: Int? = null,
@@ -296,7 +296,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
     constructor(
         /**
          * optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
-         * **Caution:** Major Android versions increment in steps of thousands. I.e. Android 11 is specified as `11000`
+         * **Caution:** Major Android versions increment in steps of ten-thousands. I.e. Android 11 is specified as `110000`
          * Can be overridden for individual apps
          */
         version: Int? = null,
@@ -445,7 +445,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
 
         /**
          * optional parameter. If set, attestation enforces Android version to be greater or equal to this parameter.
-         * **Caution:** Major Android versions increment in steps of thousands. I.e. Android 11 is specified as `11000`
+         * **Caution:** Major Android versions increment in steps of ten-thousands. I.e. Android 11 is specified as `110000`
          */
         val androidVersionOverride: Int? = null,
 
