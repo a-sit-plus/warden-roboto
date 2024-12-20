@@ -185,3 +185,13 @@ out the attestation record.
   validity.
   Defaults to 5 minutes (i.e. 300)
 - Fix verification time calculation
+
+### 1.7.1
+- Fix Android version documentation
+- Dependency Updates
+  - Update to latest Google codebase
+  - Update to BC 1.79
+  - Kotlin 2.1.0
+  - Ktor 3.0.1
+  - Kotlinx-Serialization 1.7.3
+  - protobuf-javalite 4.28.2

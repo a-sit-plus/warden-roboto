@@ -2,10 +2,9 @@ import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
-import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
 
 group = "at.asitplus"
-val artifactVersion= "1.7.0"
+val artifactVersion= "1.7.1"
 version = artifactVersion
 
 plugins {
@@ -52,12 +51,12 @@ dependencies {
     api("com.google.guava:guava:33.2.1-jre")
     implementation("com.google.auto.value:auto-value-annotations:1.11.0")
     annotationProcessor ("com.google.auto.value:auto-value:1.11.0")
-    api("com.google.protobuf:protobuf-javalite:4.27.0")
+    api("com.google.protobuf:protobuf-javalite:4.28.2")
 
     testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
     testImplementation("io.netty:netty-all:4.1.36.Final")
     testImplementation("commons-cli:commons-cli:1.4")
-    testImplementation("ch.qos.logback:logback-classic:1.2.3")
+    testImplementation("ch.qos.logback:logback-classic:1.4.12")
     testImplementation("ch.qos.logback:logback-access:1.2.3")
     testImplementation(ktor("client-mock"))
     testImplementation(datetime())
