@@ -5,7 +5,7 @@ import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
 
 group = "at.asitplus"
-val artifactVersion= "1.7.2"
+val artifactVersion= "1.7.3-SNAPSHOT"
 version = artifactVersion
 
 plugins {
