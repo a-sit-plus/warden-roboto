@@ -36,6 +36,7 @@ object AttestationCreator {
         appVersion: Int = 1,
         androidVersion: Int = 11,
         androidPatchLevel: Int = 202108,
+        vendorPatchLevel: Int?=null,
         verifiedBootKey: ByteArray = Random.nextBytes(32),
         verifiedBootHash: ByteArray = Random.nextBytes(32),
     ): List<X509Certificate> = create(
@@ -64,6 +65,7 @@ object AttestationCreator {
                 ),
                 androidVersion = androidVersion,
                 androidPatchLevel = androidPatchLevel,
+                vendorPatchLevel = vendorPatchLevel,
             )
         )
     )
@@ -152,6 +154,7 @@ data class SecurityProperties(
     val applicationInfo: KeyAttestationApplicationInfo? = null,
     val androidVersion: Int? = null,
     val androidPatchLevel: Int? = null,
+    val vendorPatchLevel: Int? = null,
     val rootOfTrust: RootOfTrust? = null,
 ) {
     fun toSequence(): DERSequence =
@@ -163,6 +166,7 @@ data class SecurityProperties(
                 androidVersion?.let { DERTaggedObject(705, ASN1Integer(it.toLong())) },
                 androidPatchLevel?.let { DERTaggedObject(706, ASN1Integer(it.toLong())) },
                 applicationInfo?.let { DERTaggedObject(709, DEROctetString(it.encoded())) },
+                vendorPatchLevel?.let { DERTaggedObject(718, ASN1Integer(it.toLong())) },
             ).filterNotNull().toTypedArray()
         )
 }

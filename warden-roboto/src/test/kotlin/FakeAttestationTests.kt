@@ -43,6 +43,34 @@ class FakeAttestationTests : FreeSpec({
             )
         )
 
+        "Bug 77" {
+            val borkedAttestation = AttestationCreator.createAttestation(
+                challenge = challenge,
+                packageName = packageName,
+                signatureDigest = signatureDigest,
+                appVersion = appVersion,
+                androidVersion = androidVersion,
+                vendorPatchLevel = 0,
+            )
+
+            HardwareAttestationChecker(
+                AndroidAttestationConfiguration(
+                    AndroidAttestationConfiguration.AppData(
+                        packageName = packageName,
+                        signatureDigests = listOf(signatureDigest),
+                        appVersion = appVersion),
+                    androidVersion = androidVersion,
+                    patchLevel = patchLevel,
+                    requireStrongBox = false,
+                    allowBootloaderUnlock = false,
+                    ignoreLeafValidity = false,
+                    hardwareAttestationTrustAnchors = setOf(borkedAttestation.last().publicKey)
+                )).verifyAttestation(
+                certificates = borkedAttestation,
+                expectedChallenge = challenge
+            )
+        }
+
         val nokia = AttestationData(
             "Nokia X10",
             challengeB64 = "HcAotmy6ZBX8cnh5mvMc2w==",
