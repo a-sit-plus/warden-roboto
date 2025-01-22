@@ -13,6 +13,7 @@ In addition, 1.0.0. introduces a new diagnostics tool (a runnable jar), which ta
 prints
 out the attestation record.
 
+## NEXT
 
 ## 1.7.0
 
