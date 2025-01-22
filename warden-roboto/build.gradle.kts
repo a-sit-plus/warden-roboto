@@ -56,7 +56,7 @@ dependencies {
     testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
     testImplementation("io.netty:netty-all:4.1.36.Final")
     testImplementation("commons-cli:commons-cli:1.4")
-    testImplementation("ch.qos.logback:logback-classic:1.4.12")
+    testImplementation("ch.qos.logback:logback-classic:1.2.3")
     testImplementation("ch.qos.logback:logback-access:1.2.3")
     testImplementation(ktor("client-mock"))
     testImplementation(datetime())
