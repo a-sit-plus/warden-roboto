@@ -171,9 +171,9 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
     /**
      * HTTP Proxy URL formatted as `http(s)://proxy-domain:port`
      */
-    val httpProxy: String? = null
+    val httpProxy: String? = null,
 
-) {
+    ) {
 
     /**
      * Convenience constructor to attest a single app1
@@ -271,7 +271,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * HTTP Proxy URL formatted as `http(s)://proxy-domain:port`
          */
-        httpProxy: String? = null
+        httpProxy: String? = null,
     ) : this(
         listOf(singleApp),
         androidVersion = androidVersion,
@@ -393,7 +393,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * HTTP Proxy URL formatted as `http(s)://proxy-domain:port`
          */
-        httpProxy: String? = null
+        httpProxy: String? = null,
     ) : this(
         applications = apps,
         androidVersion = version,
@@ -455,6 +455,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         internal val patchLevelOverride: PatchLevel? = null,
 
         ) {
+
         init {
             if (signatureDigests.isEmpty()) throw object :
                 AndroidAttestationException("No signature digests specified", null) {}
@@ -509,6 +510,17 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
                 AppData(packageName, signatureDigests, appVersion, androidVersionOverride, patchLevelOverride)
         }
 
+        override fun toString(): String {
+            return "AppData(" +
+                    "packageName='$packageName', " +
+                    "signatureDigests=${signatureDigests.joinToString { it.encodeBase64() }}, " +
+                    "appVersion=$appVersion, " +
+                    "androidVersionOverride=$androidVersionOverride, " +
+                    "patchLevelOverride=$patchLevelOverride, " +
+                    "osPatchLevel=$osPatchLevel" +
+                    ")"
+        }
+
     }
 
     init {
@@ -540,13 +552,9 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         private var rollbackResitanceRequired: Boolean = false
         private var ignoreLeafValidity: Boolean = false
         private var hardwareAttestationTrustAnchors = mutableSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS)
-
         private var softwareAttestationTrustAnchors = mutableSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS)
-
         private var verificationSecondsOffset = 0
-
         private var attestationStatementValiditySeconds = 10 * 60
-
         private var disableHwAttestation: Boolean = false
         private var enableSwAttestation: Boolean = false
         private var enableNougatAttestation: Boolean = false
@@ -656,6 +664,27 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
             httpProxy = httpProxy,
         )
 
+    }
+
+    override fun toString(): String {
+        return "AndroidAttestationConfiguration(" +
+                "applications=$applications, " +
+                "androidVersion=$androidVersion, " +
+                "patchLevel=$patchLevel, " +
+                "requireStrongBox=$requireStrongBox, " +
+                "allowBootloaderUnlock=$allowBootloaderUnlock, " +
+                "requireRollbackResistance=$requireRollbackResistance, " +
+                "ignoreLeafValidity=$ignoreLeafValidity, " +
+                "hardwareAttestationTrustAnchors=${hardwareAttestationTrustAnchors.joinToString { it.encoded.encodeBase64() }}, " +
+                "softwareAttestationTrustAnchors=${softwareAttestationTrustAnchors.joinToString { it.encoded.encodeBase64() }}, " +
+                "verificationSecondsOffset=$verificationSecondsOffset, " +
+                "attestationStatementValiditySeconds=$attestationStatementValiditySeconds, " +
+                "disableHardwareAttestation=$disableHardwareAttestation, " +
+                "enableNougatAttestation=$enableNougatAttestation, " +
+                "enableSoftwareAttestation=$enableSoftwareAttestation, " +
+                "httpProxy=$httpProxy, " +
+                "osPatchLevel=$osPatchLevel" +
+                ")"
     }
 }
 
