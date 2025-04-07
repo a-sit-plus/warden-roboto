@@ -13,7 +13,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Build jar
-        run: ./gradlew test assemble
+        run: ./gradlew test assemble shadowJar
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
@@ -22,8 +22,9 @@ jobs:
           path: warden-roboto/build/test-results/**/TEST*.xml
           reporter: java-junit
       - name: Upload jar
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: warden-roboto
           path: |
-            build/libs/*jar
+            warden-roboto/build/libs/*jar
+            attestation-diag/build/libs/attestation-diag-*-all.jar
