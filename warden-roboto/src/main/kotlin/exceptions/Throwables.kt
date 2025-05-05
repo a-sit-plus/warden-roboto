@@ -6,7 +6,17 @@ import at.asitplus.attestation.android.SoftwareAttestationChecker
  * Base class for all well-defined Android attestation exceptions.
  * If this one is thrown, a well-defined error arose.
  */
-abstract class AndroidAttestationException(message: String?, cause: Throwable?):Throwable(message, cause)
+abstract class AndroidAttestationException(message: String?, cause: Throwable?):Throwable(message, cause) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AndroidAttestationException) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
+}
 
 
 /**
@@ -79,6 +89,22 @@ class AttestationValueException(message: String?, cause: Throwable? = null, val 
          */
         TIME
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AttestationValueException) return false
+        if (!super.equals(other)) return false
+
+        if (reason != other.reason) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + reason.hashCode()
+        return result
+    }
 }
 
 /**
@@ -106,6 +132,22 @@ class CertificateInvalidException(message: String, cause: Throwable? = null, val
         TIME,
 
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CertificateInvalidException) return false
+        if (!super.equals(other)) return false
+
+        if (reason != other.reason) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + reason.hashCode()
+        return result
+    }
 }
 
 /**
@@ -130,5 +172,21 @@ class RevocationException(message: String?, cause: Throwable? = null, val reason
          * Indicates that a certificate on the chain was revoked or suspended.
          */
         REVOKED
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is RevocationException) return false
+        if (!super.equals(other)) return false
+
+        if (reason != other.reason) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + reason.hashCode()
+        return result
     }
 }
