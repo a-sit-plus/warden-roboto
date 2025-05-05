@@ -3,6 +3,9 @@
 ## 1.8.0
 
 * Dependency Updates
+  * Kotlin 2.1.20
+  * Kotlinx-Serialization 1.8.0
+  * Ktor 3.0.3
 * 64-bit precision (`Long`) for temporal offsets and validity -> if you don't want to effectively disable temporal
   attestation validity checks, set offset and validity to ridiculously high values. **THIS IS A BREAKING CHANGE**
 * Ability to record debug infos, serialize, deserialize and replay them
