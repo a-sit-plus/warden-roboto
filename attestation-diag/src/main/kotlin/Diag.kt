@@ -1,17 +1,15 @@
 package at.asitplus.attestation.android
 
+import at.asitplus.catchingUnwrapped
+import at.asitplus.signum.indispensable.toJcaCertificateBlocking
 import com.google.android.attestation.ParsedAttestationRecord
-import java.io.File
-import java.security.PublicKey
-import java.security.cert.X509Certificate
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonNull
-import com.google.gson.JsonSerializer
+import com.google.gson.*
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.security.Security
+import java.security.interfaces.ECPublicKey
 
 fun main(args: Array<String>) {
-
+    Security.addProvider(BouncyCastleProvider())
     if (args.isEmpty()) {
         System.err.println("Certificate neither specified in a file (-f <path to PEM/Base64 cert>) nor as parameter <Base64 cert>!")
         System.exit(1)
@@ -24,11 +22,22 @@ fun main(args: Array<String>) {
     @OptIn(ExperimentalStdlibApi::class, kotlin.io.encoding.ExperimentalEncodingApi::class)
     val gson: Gson = GsonBuilder().apply {
 
-        registerTypeAdapter(ByteArray::class.java,
+        registerTypeAdapter(
+            ByteArray::class.java,
             JsonSerializer<ByteArray> { src, _, _ ->
                 JsonPrimitive(src?.toHexString(HexFormat.UpperCase))
             })
-        registerTypeAdapter(java.security.PublicKey::class.java, JsonSerializer<java.security.PublicKey> { src, _, _ ->
+        registerTypeAdapter(
+            java.time.YearMonth::class.java,
+            JsonSerializer<java.time.YearMonth> { src, _, _ ->
+                JsonPrimitive(src?.toString())
+            })
+        registerTypeAdapter(
+            java.time.LocalDate::class.java,
+            JsonSerializer<java.time.LocalDate> { src, _, _ ->
+                JsonPrimitive(src?.toString())
+            })
+        registerTypeHierarchyAdapter(ECPublicKey::class.java, JsonSerializer<ECPublicKey> { src, _, _ ->
             com.google.gson.JsonObject().apply {
                 add("algorithm", JsonPrimitive(src.algorithm))
                 add("format", JsonPrimitive(src.format))
@@ -38,9 +47,13 @@ fun main(args: Array<String>) {
         registerTypeAdapter(
             java.util.Optional::class.java,
             JsonSerializer<java.util.Optional<*>> { src, _, ctx ->
-                if (src == null || src.isEmpty) {
-                    if (!full) null else JsonNull.INSTANCE
-                } else ctx.serialize(src.get())
+                catchingUnwrapped {
+                    if (src == null || src.isEmpty) {
+                        if (!full) null else JsonNull.INSTANCE
+                    } else ctx.serialize(src.get())
+                }.getOrElse {
+                    ctx.serialize(it.message)
+                }
             })
         registerTypeAdapter(
             java.security.cert.Certificate::class.java,
@@ -67,12 +80,8 @@ fun main(args: Array<String>) {
         gson.toJson(
             ParsedAttestationRecord.createParsedAttestationRecord(
                 listOf(
-                    java.security.cert.CertificateFactory.getInstance(
-                        "X.509"
-                    ).generateCertificate(
-                        java.util.Base64.getMimeDecoder()
-                            .decode(certB64.replace("\\n", "").replace("\\r", "").replace(" ", "")).inputStream()
-                    ) as X509Certificate
+                    at.asitplus.signum.indispensable.pki.X509Certificate.decodeFromByteArray(certB64.encodeToByteArray())!!
+                        .toJcaCertificateBlocking().getOrThrow()
                 )
             )
         )

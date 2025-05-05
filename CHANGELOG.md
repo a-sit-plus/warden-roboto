@@ -1,19 +1,30 @@
 # 1.0.0
 
-**This version introduces incompatible changes! Re-read the readme!**
+## 1.8.0
 
-Most notably, it now supports configuring multiple applications, introduces optional software-only attestation and a new
-hybrid
-attestation checker, which caters towards legacy devices, which originally shipped with Android 7 (Nougat).
-Most of such devices support hardware attestation only for keys, but not for app/os-related information.
-<br>
-Moreover, a builder is now available for more Java-friendliness
+* Dependency Updates
+* 64-bit precision (`Long`) for temporal offsets and validity -> if you don't want to effectively disable temporal
+  attestation validity checks, set offset and validity to ridiculously high values. **THIS IS A BREAKING CHANGE**
+* Ability to record debug infos, serialize, deserialize and replay them
 
-In addition, 1.0.0. introduces a new diagnostics tool (a runnable jar), which takes an attestation certificate and
-prints
-out the attestation record.
+## 1.7.2
 
-## NEXT
+- Work around upstream bug [#77](https://github.com/google/android-key-attestation/issues/77)
+- Dependency Updates:
+    - error_prone_annotations 2.36.0
+    - guava 33.4.0
+    - Ktor 3.0.3
+
+## 1.7.1
+
+- Fix Android version documentation
+- Dependency Updates
+    - Update to latest Google codebase
+    - Update to BC 1.79
+    - Kotlin 2.1.0
+    - Ktor 3.0.1
+    - Kotlinx-Serialization 1.7.3
+    - protobuf-javalite 4.28.2
 
 ## 1.7.0
 
@@ -23,24 +34,6 @@ out the attestation record.
   validity.
   Defaults to 5 minutes (i.e. 300)
 - Fix verification time calculation
-
-### 1.7.2
-
-- Work around upstream bug [#77](https://github.com/google/android-key-attestation/issues/77)
-- Dependency Updates:
-    - error_prone_annotations 2.36.0
-    - guava 33.4.0
-    - Ktor 3.0.3
-
-### 1.7.1
-- Fix Android version documentation
-- Dependency Updates
-    - Update to latest Google codebase
-    - Update to BC 1.79
-    - Kotlin 2.1.0
-    - Ktor 3.0.1
-    - Kotlinx-Serialization 1.7.3
-    - protobuf-javalite 4.28.2
 
 
 ## 1.6.0
@@ -99,7 +92,6 @@ out the attestation record.
 ## 1.3.0
 
 - make configuration play nicely with file-based config loading (e.g. [HopLite](https://github.com/sksamuel/hoplite))
-
 
 ## 1.2.0
 

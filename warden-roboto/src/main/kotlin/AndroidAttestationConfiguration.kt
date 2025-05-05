@@ -1,8 +1,10 @@
 package at.asitplus.attestation.android
 
 import at.asitplus.attestation.android.exceptions.AndroidAttestationException
+import at.asitplus.signum.indispensable.io.ByteArrayBase64UrlSerializer
 import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import io.ktor.util.*
+import kotlinx.serialization.Serializable
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
@@ -11,6 +13,7 @@ import java.util.*
 /**
  * Nomen est omen
  */
+@Serializable
 data class PatchLevel(val year: Int, val month: Int) {
     val asSingleInt: Int by lazy {
         ("%04d".format(year) + "%02d".format(month)).toInt()
@@ -77,6 +80,7 @@ val DEFAULT_SOFTWARE_TRUST_ANCHORS = arrayOf(
  * Enabling this flag, while keeping [disableHardwareAttestation] `true` makes is possible to instantiate both a
  * [HardwareAttestationChecker] and a [SoftwareAttestationChecker].
  */
+@Serializable
 data class AndroidAttestationConfiguration @JvmOverloads constructor(
 
     /**
@@ -125,25 +129,27 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
      * Overriding this set is useful for automated end-to-end tests, for example.
      * The default trust anchors are accessible through [DEFAULT_HARDWARE_TRUST_ANCHORS]
      */
-    val hardwareAttestationTrustAnchors: Set<PublicKey> = linkedSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS),
+    val hardwareAttestationTrustAnchors: Set<@Serializable(with = PubKeyBasePemSerializer::class) PublicKey>
+    = linkedSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS),
 
     /**
      * Manually specify the trust anchor for SW-attested certificate chains. Defaults to google SW attestation keys.
      * Overriding this set is useful for automated end-to-end tests, for example.
      * The default trust anchors are accessible through [DEFAULT_SOFTWARE_TRUST_ANCHORS]
      */
-    val softwareAttestationTrustAnchors: Set<PublicKey> = linkedSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS),
+    val softwareAttestationTrustAnchors: Set<@Serializable(with = PubKeyBasePemSerializer::class) PublicKey>
+    = linkedSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS),
 
     /**
      *  Tolerance in seconds added to verification date
      */
-    val verificationSecondsOffset: Int = 0,
+    val verificationSecondsOffset: Long = 0,
 
     /**
      * Validity of the attestation statement in seconds. This is not the certificate validity!
      * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
      */
-    val attestationStatementValiditySeconds: Int = 5 * 60,
+    val attestationStatementValiditySeconds: Long = 5 * 60,
 
     /**
      * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what
@@ -237,13 +243,13 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          *  Tolerance in seconds added to verification date
          */
-        verificationSecondsOffset: Int = 0,
+        verificationSecondsOffset: Long = 0,
 
         /**
          * Validity of the attestation statement in seconds. This is not the certificate validity!
          * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
          */
-        attestationStatementValiditySeconds: Int = 10 * 60,
+        attestationStatementValiditySeconds: Long = 10 * 60,
 
         /**
          * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what
@@ -334,13 +340,13 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          *  Tolerance in seconds added to verification date
          */
-        verificationSecondsOffset: Int = 0,
+        verificationSecondsOffset: Long = 0,
 
         /**
          * Validity of the attestation statement in seconds. This is not the certificate validity!
          * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
          */
-        attestationStatementValiditySeconds: Int = 10 * 60,
+        attestationStatementValiditySeconds: Long = 10 * 60,
 
         /**
          * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what
@@ -426,6 +432,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
      * builds and production builds in parallel.
      * @param appVersion optional parameter. If set, attestation enforces application version to be greater or equal to this parameter
      * */
+    @Serializable
     data class AppData @JvmOverloads constructor(
         /**
          * Android app package name (e.g. `at.asitplus.demo`)
@@ -436,7 +443,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
          * production play store releases.
          * Being able to specify multiple digests makes it easy to use development builds and production builds in parallel
          */
-        val signatureDigests: List<ByteArray>,
+        val signatureDigests: List<@Serializable(with = ByteArrayBase64UrlSerializer::class) ByteArray>,
 
         /**
          * optional parameter. If set, attestation enforces application version to be greater or equal to this parameter
@@ -455,7 +462,6 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         internal val patchLevelOverride: PatchLevel? = null,
 
         ) {
-
         init {
             if (signatureDigests.isEmpty()) throw object :
                 AndroidAttestationException("No signature digests specified", null) {}
@@ -521,6 +527,38 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
                     ")"
         }
 
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is AppData) return false
+
+            if (appVersion != other.appVersion) return false
+            if (androidVersionOverride != other.androidVersionOverride) return false
+            if (osPatchLevel != other.osPatchLevel) return false
+            if (packageName != other.packageName) return false
+
+            if (signatureDigests.size != other.signatureDigests.size) return false
+            signatureDigests.forEachIndexed { index, byteArray ->
+                if (!other.signatureDigests[index].contentEquals(
+                        byteArray
+                    )
+                ) return false
+            }
+
+            if (patchLevelOverride != other.patchLevelOverride) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = appVersion ?: 0
+            result = 31 * result + (androidVersionOverride ?: 0)
+            result = 31 * result + (osPatchLevel ?: 0)
+            result = 31 * result + packageName.hashCode()
+            result = 31 * result + signatureDigests.hashCode()
+            result = 31 * result + (patchLevelOverride?.hashCode() ?: 0)
+            return result
+        }
+
     }
 
     init {
@@ -553,8 +591,8 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         private var ignoreLeafValidity: Boolean = false
         private var hardwareAttestationTrustAnchors = mutableSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS)
         private var softwareAttestationTrustAnchors = mutableSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS)
-        private var verificationSecondsOffset = 0
-        private var attestationStatementValiditySeconds = 10 * 60
+        private var verificationSecondsOffset = 0L
+        private var attestationStatementValiditySeconds = 10 * 60L
         private var disableHwAttestation: Boolean = false
         private var enableSwAttestation: Boolean = false
         private var enableNougatAttestation: Boolean = false
@@ -618,13 +656,13 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * @see AndroidAttestationConfiguration.verificationSecondsOffset
          */
-        fun verificationSecondsOffset(seconds: Int) = apply { verificationSecondsOffset = seconds }
+        fun verificationSecondsOffset(seconds: Long) = apply { verificationSecondsOffset = seconds }
 
         /**
          * Validity of the attestation statement in seconds. This is not the certificate validity!
          * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
          */
-        fun attestationStatementValiditySeconds(seconds: Int) = apply { attestationStatementValiditySeconds = seconds }
+        fun attestationStatementValiditySeconds(seconds: Long) = apply { attestationStatementValiditySeconds = seconds }
 
         /**
          * @see AndroidAttestationConfiguration.disableHardwareAttestation
@@ -685,6 +723,55 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
                 "httpProxy=$httpProxy, " +
                 "osPatchLevel=$osPatchLevel" +
                 ")"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AndroidAttestationConfiguration) return false
+
+        if (androidVersion != other.androidVersion) return false
+        if (requireStrongBox != other.requireStrongBox) return false
+        if (allowBootloaderUnlock != other.allowBootloaderUnlock) return false
+        if (requireRollbackResistance != other.requireRollbackResistance) return false
+        if (ignoreLeafValidity != other.ignoreLeafValidity) return false
+        if (verificationSecondsOffset != other.verificationSecondsOffset) return false
+        if (attestationStatementValiditySeconds != other.attestationStatementValiditySeconds) return false
+        if (disableHardwareAttestation != other.disableHardwareAttestation) return false
+        if (enableNougatAttestation != other.enableNougatAttestation) return false
+        if (enableSoftwareAttestation != other.enableSoftwareAttestation) return false
+        if (osPatchLevel != other.osPatchLevel) return false
+        if (applications != other.applications) return false
+        if (patchLevel != other.patchLevel) return false
+
+        if (hardwareAttestationTrustAnchors.size != other.hardwareAttestationTrustAnchors.size) return false
+        hardwareAttestationTrustAnchors.forEachIndexed { index, publicKey -> if (!publicKey.encoded.contentEquals(other.hardwareAttestationTrustAnchors.toList()[index].encoded)) return false }
+
+        if (softwareAttestationTrustAnchors.size != other.softwareAttestationTrustAnchors.size) return false
+        softwareAttestationTrustAnchors.forEachIndexed { index, publicKey -> if (!publicKey.encoded.contentEquals(other.softwareAttestationTrustAnchors.toList()[index].encoded)) return false }
+
+        if (httpProxy != other.httpProxy) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = androidVersion ?: 0
+        result = 31 * result + requireStrongBox.hashCode()
+        result = 31 * result + allowBootloaderUnlock.hashCode()
+        result = 31 * result + requireRollbackResistance.hashCode()
+        result = 31 * result + ignoreLeafValidity.hashCode()
+        result = 31 * result + verificationSecondsOffset.toInt()
+        result = 31 * result + attestationStatementValiditySeconds.toInt()
+        result = 31 * result + disableHardwareAttestation.hashCode()
+        result = 31 * result + enableNougatAttestation.hashCode()
+        result = 31 * result + enableSoftwareAttestation.hashCode()
+        result = 31 * result + (osPatchLevel ?: 0)
+        result = 31 * result + applications.hashCode()
+        result = 31 * result + (patchLevel?.hashCode() ?: 0)
+        result = 31 * result + hardwareAttestationTrustAnchors.hashCode()
+        result = 31 * result + softwareAttestationTrustAnchors.hashCode()
+        result = 31 * result + (httpProxy?.hashCode() ?: 0)
+        return result
     }
 }
 

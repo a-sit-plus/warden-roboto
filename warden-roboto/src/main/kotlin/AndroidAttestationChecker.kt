@@ -252,6 +252,26 @@ abstract class AndroidAttestationChecker(
     }
 
     /**
+     * Packs
+     * * the current configuration
+     * * the passed attestation proof
+     * * the passed date
+     *
+     * into a serializable data structure for easy debugging
+     */
+    fun collectDebugInfo(
+        certificates: List<X509Certificate>,
+        expectedChallenge: ByteArray,
+        verificationDate: Date = Date(),
+    ) = AndroidDebugAttestationStatement(
+        this,
+        attestationConfiguration,
+        verificationDate,
+        expectedChallenge,
+        certificates
+    )
+
+    /**
      * Verifies Android Key attestation Implements in accordance with https://developer.android.com/training/articles/security-key-attestation.
      * Checks are performed according to the properties set in the [attestationConfiguration].
      *
@@ -269,11 +289,9 @@ abstract class AndroidAttestationChecker(
         verificationDate: Date = Date(),
         expectedChallenge: ByteArray
     ): ParsedAttestationRecord {
-        val calendar = Calendar.getInstance()
-        calendar.time = verificationDate
-        calendar.add(Calendar.SECOND, attestationConfiguration.verificationSecondsOffset)
-
-        certificates.verifyCertificateChain(calendar.time)
+        val actualVerificationDate =
+            Date.from(verificationDate.toInstant().plusSeconds(attestationConfiguration.verificationSecondsOffset))
+        certificates.verifyCertificateChain(actualVerificationDate)
 
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
         if (!verifyChallenge(

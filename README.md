@@ -152,11 +152,30 @@ val attestationRecord =  checker.verifyAttestation(attestationCertChain, Date(),
 ```
 
 ## Debugging
+
+### Recording and Replaying Attestation Checks
+Since WARDEN-roboto 1.8.0, `AndroidAttestationChecker` has a method to record the current config and an attestation statement to-be-checked:
+
+```kotlin
+collectDebugInfo(
+certificates: List<X509Certificate>,
+expectedChallenge: ByteArray,
+verificationDate: Date = Date(),
+): AndroidDebugAttestationStatement
+```
+
+The resulting class can be serialized to JSON by invoking `.serialize()` on it.
+It can later be deserialized by calling `deserialize()` on its companion.
+By finally calling `replay()` on the deserialized debug info object, an attestation verification is performed.
+
+Attaching a debugger allows for step-by-step debugging of any attestation errors encountered.
+
+### Printing Human-Readable Attestation Info
 The module [attestation-diag](https://github.com/a-sit-plus/warden-roboto/blob/main/attestation-diag) contains a
 (very) simple command-line utility. It can be built using the `shadowJar` gradle task and pretty-prints attestation
 information contained in attestation certificates:
 ```shell
-java -jar attestation-diag-0.0.1-all.jar "MIICkDCCAjagAwIBAgIBATAKBggqhkjOPQQDAjCBiDELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFTATBgNVBAoMDEdvb2dsZSwgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDE7MDkGA1UEAwwyQW5kcm9pZCBLZXlzdG9yZSBTb2Z0d2FyZSBBdHRlc3RhdGlvbiBJbnRlcm1lZGlhdGUwIBcNNzAwMTAxMDAwMDAwWhgPMjEwNjAyMDcwNjI4MTVaMB8xHTAbBgNVBAMMFEFuZHJvaWQgS2V5c3RvcmUgS2V5MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoX5eWkxsJOk2z6S5tclt6bOyJhS3b+2+ULx3O3zZAwFNrbWP52YnQzp\/lsexI99lx\/Z5NRzJ9x0aD
+java -jar attestation-diag-0.0.3-all.jar "MIICkDCCAjagAwIBAgIBATAKBggqhkjOPQQDAjCBiDELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFTATBgNVBAoMDEdvb2dsZSwgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDE7MDkGA1UEAwwyQW5kcm9pZCBLZXlzdG9yZSBTb2Z0d2FyZSBBdHRlc3RhdGlvbiBJbnRlcm1lZGlhdGUwIBcNNzAwMTAxMDAwMDAwWhgPMjEwNjAyMDcwNjI4MTVaMB8xHTAbBgNVBAMMFEFuZHJvaWQgS2V5c3RvcmUgS2V5MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoX5eWkxsJOk2z6S5tclt6bOyJhS3b+2+ULx3O3zZAwFNrbWP52YnQzp\/lsexI99lx\/Z5NRzJ9x0aD
 LdIcR\/AyqOB9jCB8zALBgNVHQ8EBAMCB4AwgcIGCisGAQQB1nkCAREEgbMwgbACAQIKAQACAQEKAQEEB2Zvb2JkYXIEADBev4U9BwIFAKtq1Vi\/hUVPBE0wSzElMCMEHmNvbS5leGFtcGxlLnRydXN0ZWRhcHBsaWNhdGlvbgIBATEiBCCI5cOT6u82gpgAtB33hqUv8KWCFYUMqKZQc4Wa3PAZDzA3oQgxBgIBAgIBA6IDAgEDowQCAgEApQgxBgIBAAIBBKoDAgEBv4N3AgUAv4U+AwIBAL+FPwIFADAfBgNVHSMEGDAWgBQ\/\/KzWGrE6noEguNUlHMVlux6RqTAKBggqhkjOPQQDAgNIADBFAiBiMBtVeUV4j1VOiRU8DnGzq9\/xtHfl0wra1xnsmxG+LAIhAJAroVhVcxxItgYZEMN1AaWqmZUXFtktQeLXh7u2F3d+"
 ```
 
@@ -349,7 +368,7 @@ The example below shows a verbose JSON obtained this way:
 
 Attestation certificates can also be read from a file (need to be PEM-encoded, but can also be plain base64 MIME-encoded):
 ```shell
-java -jar attestation-diag-0.0.1-all.jar -f cert.pem
+java -jar attestation-diag-0.0.3-all.jar -f cert.pem
 ```
 
 (Some) illegal characters are stripped from the base64 input for convenience, which means that dirty base64 also somewhat works.
