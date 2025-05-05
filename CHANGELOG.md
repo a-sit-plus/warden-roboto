@@ -1,5 +1,7 @@
 # 1.0.0
 
+## NEXT
+
 ## 1.8.0
 
 * Dependency Updates
