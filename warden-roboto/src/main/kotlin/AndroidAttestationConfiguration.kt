@@ -148,8 +148,10 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
     /**
      * Validity of the attestation statement in seconds. This is not the certificate validity!
      * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
+     *
+     * **Can be set to `null` to ignore attestation statement validity checking.** In this case, even a faulty attestation statement lacking a creation time will verify.
      */
-    val attestationStatementValiditySeconds: Long = 5 * 60,
+    val attestationStatementValiditySeconds: Long? = 5 * 60,
 
     /**
      * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what
@@ -182,7 +184,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
     ) {
 
     /**
-     * Convenience constructor to attest a single app1
+     * Convenience constructor to attest a single app
      */
     constructor(
         /**
@@ -248,8 +250,10 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * Validity of the attestation statement in seconds. This is not the certificate validity!
          * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
+         *
+         * **Can be set to `null` to ignore attestation statement validity checking.** In this case, even a faulty attestation statement lacking a creation time will verify.
          */
-        attestationStatementValiditySeconds: Long = 10 * 60,
+        attestationStatementValiditySeconds: Long? = 5 * 60,
 
         /**
          * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what
@@ -345,8 +349,10 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * Validity of the attestation statement in seconds. This is not the certificate validity!
          * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
+         *
+         * **Can be set to `null` to ignore attestation statement validity checking.** In this case, even a faulty attestation statement lacking a creation time will verify.
          */
-        attestationStatementValiditySeconds: Long = 10 * 60,
+        attestationStatementValiditySeconds: Long? = 5 * 60,
 
         /**
          * Entirely disable creation of a [HardwareAttestationChecker]. Only change this flag, if you **really** know what
@@ -592,7 +598,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         private var hardwareAttestationTrustAnchors = mutableSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS)
         private var softwareAttestationTrustAnchors = mutableSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS)
         private var verificationSecondsOffset = 0L
-        private var attestationStatementValiditySeconds = 10 * 60L
+        private var attestationStatementValiditySeconds: Long? = 5 * 60
         private var disableHwAttestation: Boolean = false
         private var enableSwAttestation: Boolean = false
         private var enableNougatAttestation: Boolean = false
@@ -661,8 +667,10 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         /**
          * Validity of the attestation statement in seconds. This is not the certificate validity!
          * An attestation statement has a creation time. This value indicates how far in the past the creation time might be.
+         *
+         * **Can be set to `null` to ignore attestation statement validity checking.** In this case, even a faulty attestation statement lacking a creation time will verify.
          */
-        fun attestationStatementValiditySeconds(seconds: Long) = apply { attestationStatementValiditySeconds = seconds }
+        fun attestationStatementValiditySeconds(seconds: Long?) = apply { attestationStatementValiditySeconds = seconds }
 
         /**
          * @see AndroidAttestationConfiguration.disableHardwareAttestation
@@ -761,7 +769,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
         result = 31 * result + requireRollbackResistance.hashCode()
         result = 31 * result + ignoreLeafValidity.hashCode()
         result = 31 * result + verificationSecondsOffset.toInt()
-        result = 31 * result + attestationStatementValiditySeconds.toInt()
+        attestationStatementValiditySeconds?.let { result = 31 * result + attestationStatementValiditySeconds.toInt() }
         result = 31 * result + disableHardwareAttestation.hashCode()
         result = 31 * result + enableNougatAttestation.hashCode()
         result = 31 * result + enableSoftwareAttestation.hashCode()
