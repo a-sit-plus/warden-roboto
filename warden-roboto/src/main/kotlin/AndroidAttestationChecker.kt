@@ -115,6 +115,7 @@ abstract class AndroidAttestationChecker(
     protected abstract val trustAnchors: Collection<PublicKey>
 
     protected open fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Instant) {
+        if(attestationConfiguration.attestationStatementValiditySeconds == null) return //no validity, no checks!
         val createdAt =
             teeEnforced().creationDateTime().getOrNull() ?: softwareEnforced().creationDateTime().getOrNull()
         if (createdAt == null) throw AttestationValueException(

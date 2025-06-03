@@ -103,7 +103,8 @@ AndroidAttestationConfiguration(
     hardwareAttestationTrustAnchors = linkedSetOf(*DEFAULT_HARDWARE_TRUST_ANCHORS), //OPTIONAL, defaults  shown here
     softwareAttestationTrustAnchors = linkedSetOf(*DEFAULT_SOFTWARE_TRUST_ANCHORS), //OPTIONAL, defaults  shown here
     verificationSecondsOffset = -300,       //OPTIONAL, defaults to 0
-    attestationStatementValiditySeconds = 0,//OPTIONAL, defaults to 300. Affects timestamp checks against the attestation statement creation, not the certificate.
+    attestationStatementValiditySeconds = 0,//OPTIONAL, defaults to 300. Affects timestamp checks against the attestation statement creation,
+                                            //not the certificate. Can be null to ignore creation time checks.
     disableHardwareAttestation = false,     //OPTIONAL, defaults to false
     enableNougatAttestation = false,        //OPTIONAL, defaults to false
     enableSoftwareAttestation = false,      //OPTIONAL, defaults to false
