@@ -1,7 +1,11 @@
 # 1.0.0
 
 ## NEXT
-
+* Kotlin 2.1.21
+* Bouncy Castle 1.81
+* KmmResult 1.9.3
+* Signum 3.16.3
+* Ktor 3.2.0
 
 ## 1.8.1
 * Optionally disregard attestation statement creation time check by setting `attestationStatementValiditySeconds` to `null`

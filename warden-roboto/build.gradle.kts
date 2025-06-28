@@ -65,7 +65,7 @@ dependencies {
     implementation("com.google.auto.value:auto-value-annotations:1.11.0")
     annotationProcessor("com.google.auto.value:auto-value:1.11.0")
     api("com.google.protobuf:protobuf-javalite:4.29.3")
-    api("at.asitplus.signum:indispensable:3.16.1") //for the serializers
+    api("at.asitplus.signum:indispensable:3.16.3") //for the serializers
 
     testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
     testImplementation("io.netty:netty-all:4.1.36.Final")
