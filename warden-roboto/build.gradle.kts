@@ -10,6 +10,8 @@ val artifactVersion: String by extra
 version = artifactVersion
 
 plugins {
+
+    id("de.infix.testBalloon") version "0.3.3-K2.2.0"
     kotlin("jvm")
     kotlin("plugin.serialization")
     id("maven-publish")
