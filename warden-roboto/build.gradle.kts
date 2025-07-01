@@ -1,6 +1,7 @@
 import at.asitplus.gradle.AspVersions
 import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.datetime
+import at.asitplus.gradle.kotest
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
@@ -55,6 +56,12 @@ sourceSets.test {
     }
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+}
+
 
 dependencies {
     implementation(bouncycastle("bcpkix", "jdk18on"))
@@ -76,6 +83,11 @@ dependencies {
     testImplementation("ch.qos.logback:logback-access:1.2.3")
     testImplementation(ktor("client-mock"))
     testImplementation(datetime())
+
+    testImplementation(kotest("assertions-core"))
+    testImplementation("de.infix.testBalloon:testBalloon-framework-core:0.3.3-K2.2.0")
+    testImplementation("de.infix.testBalloon:testBalloon-integration-kotest-assertions:0.3.3-K2.2.0")
+
 }
 
 

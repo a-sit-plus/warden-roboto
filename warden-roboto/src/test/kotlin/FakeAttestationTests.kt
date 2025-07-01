@@ -4,12 +4,12 @@ import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.data.AttestationCreator
 import at.asitplus.attestation.data.AttestationData
 import at.asitplus.attestation.data.attestationCertChain
+import de.infix.testBalloon.framework.testSuite
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import kotlin.random.Random
 
-class FakeAttestationTests : FreeSpec({
+val  fakeAttestationTests by testSuite{
 
     "Fake Attestation Test" - {
         val challenge = "42".encodeToByteArray()
@@ -176,4 +176,4 @@ class FakeAttestationTests : FreeSpec({
 
     }
 
-})
+}

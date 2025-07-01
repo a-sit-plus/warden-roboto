@@ -7,8 +7,8 @@ import at.asitplus.attestation.data.AttestationData
 import at.asitplus.attestation.data.attestationCertChain
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.ParsedAttestationRecord.SecurityLevel
+import de.infix.testBalloon.framework.testSuite
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.*
@@ -17,12 +17,9 @@ import java.sql.Date
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-
 @OptIn(ExperimentalStdlibApi::class)
-class AttestationTests : FreeSpec() {
+val attestationTests by testSuite {
 
-
-    init {
         "TODO" {
             println("we still need unlocked bootloader testcases!")
         }
@@ -729,7 +726,7 @@ class AttestationTests : FreeSpec() {
                 }
             }
         }
-    }
+
 }
 
 private const val ATT_CLIENT_PKG_NAME = "at.asitplus.attestation_client"
