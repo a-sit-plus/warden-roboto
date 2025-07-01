@@ -9,8 +9,9 @@ operator fun String.invoke(nested: () -> Unit) {
 }
 
 context(suite: TestSuite)
-infix operator fun String.minus(testBody: () -> Unit) {
-    suite.testSuite(this) { testBody() }
+infix operator fun String.minus(testBody: TestSuite.() -> Unit) {
+    suite.testSuite(this) {testBody()}
+
 }
 
 fun <Data> TestSuite.withData(vararg parameters: Data, action: suspend (Data) -> Unit) {
