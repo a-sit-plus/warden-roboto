@@ -13,7 +13,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Build jar
-        run: ./gradlew test assemble shadowJar
+        run: ./gradlew test
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
