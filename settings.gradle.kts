@@ -12,4 +12,4 @@ pluginManagement {
 }
 
 include("warden-roboto")
-include("attestation-diag")
+//include("attestation-diag")

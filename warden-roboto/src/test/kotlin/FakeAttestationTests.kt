@@ -9,7 +9,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlin.random.Random
 
-val  fakeAttestationTests by testSuite{
+val  fakeAttestationTests by testSuite ("FakeAttestationTests"){
 
     "Fake Attestation Test" - {
         val challenge = "42".encodeToByteArray()
