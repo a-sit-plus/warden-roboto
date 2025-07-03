@@ -21,7 +21,7 @@ Full API docs are available [here](https://a-sit-plus.github.io/warden-roboto).
 This library's core logic is based off [code from Google](https://github.com/google/android-key-attestation) (and actually directly integrates it), such that it can easily keep up with upstream for the lower-level functionality.
 Because of this, it only targets the JVM, although a KMP rewrite (also targeting JS/Node) is possible.
 This JVM-centricity is also the reason why the function signatures are rather JVM-esque (read: exceptions are thrown on error,
-as done by pretty much every verification function of classes form the `java.security` package).
+as done by pretty much every verification function of classes from the `java.security` package).
 
 This library is an integral part of the more comprehensive [WARDEN](https://github.com/a-sit-plus/warden) server-side mobile client attestation library, which also supports iOS clients and provides
 more idiomatic kotlin interfaces.
@@ -35,9 +35,9 @@ for end-to-end-tests, for example.
 See [DEVELOPMENT.md](https://github.com/a-sit-plus/warden-roboto/blob/main/DEVELOPMENT.md)
 
 ## Background
-Android devices with a TEE allow for cryptographic keys to be generated in hardware. These keys can only be used, but not exported and are safe from extraction due protective hardware measures. The Android Keystore API expose this hardware-based management of cryptographic material and also allows for generating certficates for such keys, which contain custom Extension that indicate the location of a key (hardware or software).
+Android devices with a TEE allow for cryptographic keys to be generated in hardware. These keys can only be used, but not exported and are safe from extraction due protective hardware measures. The Android Keystore API expose this hardware-based management of cryptographic material and also allows for generating certifcates for such keys, which contain custom Extension that indicate the location of a key (hardware or software).
 <br>
-Additional extension (populated by the cryptographic hardware during key generation) further indicate the device's integrity state (bootloader unlocked, system image integrity, …). This certificate is signed in hardware by a manufacturer key (also protected by hardware) which is provisioned during device manufacturing. A certificate corresponding to this manufacurer key is signed by Google, and the public key of this signing key is published by Google.
+Additional extension (populated by the cryptographic hardware during key generation) further indicate the device's integrity state (bootloader unlocked, system image integrity, …). This certificate is signed in hardware by a manufacturer key (also protected by hardware) which is provisioned during device manufacturing. A certificate corresponding to this manufacturer key is signed by Google, and the public key of this signing key is published by Google.
 Hence, verifying this certificate chain against this Google root key makes it possible to assert the authenticity of the leaf certificate. Checking the custom extension of this leaf certificate consequently allows for remotely establishing trust in an Android device and the application which created the underlying key.
 A noteworthy property of this attestation concept is that no third party needs to be contacted (except for obtaining certificate revocation information) compared to Apple's AppAttest/DeviceCheck.
 
