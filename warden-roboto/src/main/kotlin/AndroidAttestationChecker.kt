@@ -3,6 +3,9 @@ package at.asitplus.attestation.android
 import at.asitplus.attestation.android.exceptions.AttestationValueException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.android.exceptions.RevocationException
+import at.asitplus.catchingUnwrapped
+import com.android.keyattestation.verifier.provider.KeyAttestationCertPath
+import com.android.keyattestation.verifier.provider.KeyAttestationProvider
 import com.google.android.attestation.AuthorizationList
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.RootOfTrust
@@ -14,7 +17,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.util.encodeBase64
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -26,9 +29,8 @@ import java.io.InputStream
 import java.math.BigInteger
 import java.security.Principal
 import java.security.PublicKey
-import java.security.cert.CertificateExpiredException
-import java.security.cert.CertificateNotYetValidException
-import java.security.cert.X509Certificate
+import java.security.Security
+import java.security.cert.*
 import java.time.Duration
 import java.time.Instant
 import java.time.YearMonth
@@ -39,6 +41,15 @@ abstract class AndroidAttestationChecker(
     protected val attestationConfiguration: AndroidAttestationConfiguration,
     private val verifyChallenge: (expected: ByteArray, actual: ByteArray) -> Boolean
 ) {
+    companion object {
+        init {
+            Security.addProvider(KeyAttestationProvider())
+        }
+
+        private fun getValidator() = CertPathValidator.getInstance("KeyAttestation")
+    }
+
+    private val newPkixCertPathValidator = getValidator()
 
     private val revocationListClient = HttpClient(CIO) { setup(attestationConfiguration.httpProxy) }
 
@@ -61,13 +72,39 @@ abstract class AndroidAttestationChecker(
                     RevocationException.Reason.LIST_UNAVAILABLE
                 )
             }
-        let {
+        val certificateChain =
             if (attestationConfiguration.ignoreLeafValidity) mapIndexed { i, cert ->
                 if (i == 0) EternalX509Certificate(cert) else cert
-            } else it
-        }.reversed().zipWithNext { parent, certificate ->
+            } else this
+
+        certificateChain.reversed().zipWithNext { parent, certificate ->
             verifyCertificatePair(certificate, parent, verificationDate, revocationStatusList)
         }
+
+        //now we double-check against the new validator to rule out manipulations of the certificate chain
+        catchingUnwrapped {
+            newPkixCertPathValidator.validate(
+                KeyAttestationCertPath(certificateChain),
+                PKIXParameters(
+                    setOf(
+                        TrustAnchor(
+                            certificateChain.last(), null
+                        )
+                    )
+                ).apply {
+                    date = verificationDate
+                    isRevocationEnabled =
+                        false //we check manually as per the official documentation, and we've done that already
+                }
+            )
+        }.onFailure {
+            throw CertificateInvalidException(
+                it.message ?: "Invalid certificate chain",
+                it,
+                CertificateInvalidException.Reason.TRUST //we have ruled out time beforehand
+            )
+        }
+
     }
 
     @Throws(RevocationException::class, CertificateInvalidException::class)

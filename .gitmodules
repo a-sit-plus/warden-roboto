@@ -4,3 +4,6 @@
 [submodule "http-proxy"]
 	path = http-proxy
 	url = https://github.com/zk-123/http-proxy.git
+[submodule "keyattestation"]
+	path = keyattestation
+	url = git@github.com:android/keyattestation.git

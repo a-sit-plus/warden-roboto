@@ -1,6 +1,9 @@
 # 1.0.0
 
 ## NEXT
+* Integrate Google's new PKI cert path validator
+    * This provides an additional safety net against cert path manipulation
+* More insightful error messages on attestation failure
 * Kotlin 2.1.21
 * Bouncy Castle 1.81
 * KmmResult 1.9.3

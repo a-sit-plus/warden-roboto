@@ -20,16 +20,18 @@ plugins {
 
 sourceSets.main {
     java {
-        srcDirs("${project.rootDir}/android-key-attestation/src/main/java")
+        srcDirs("${project.rootDir}/android-key-attestation/src/main/java",
+            "${project.rootDir}/keyattestation/src/main/kotlin/")
+
 
         exclude(
             "com/android/example/",
             "com/google/android/attestation/CertificateRevocationStatus.java",
+            "testing"
         )
-        //TODO: remove this and the patched source file in our tree once https://github.com/google/android-key-attestation/issues/77 is fixed
         File("${project.rootDir}/android-key-attestation/src/main/java/com/google/android/attestation/AuthorizationList.java").let {
             if (it.exists()) {
-                it.renameTo(File(it.canonicalPath + ".bak"))
+               it.delete()
             }
         }
     }
@@ -66,6 +68,12 @@ dependencies {
     annotationProcessor("com.google.auto.value:auto-value:1.11.0")
     api("com.google.protobuf:protobuf-javalite:4.29.3")
     api("at.asitplus.signum:indispensable:3.16.3") //for the serializers
+
+
+    //new attestation lib
+    implementation("co.nstant.in:cbor:0.9")
+    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
 
     testImplementation("org.slf4j:slf4j-reload4j:1.7.36")
     testImplementation("io.netty:netty-all:4.1.36.Final")
