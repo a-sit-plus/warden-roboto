@@ -14,6 +14,7 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.encodeBase64
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -105,17 +106,27 @@ abstract class AndroidAttestationChecker(
         root.checkValidity(verificationDate)
         val matchingTrustAnchor = trustAnchors
             .firstOrNull { root.publicKey.encoded.contentEquals(it.encoded) }
-            ?: throw CertificateInvalidException(
-                "No matching root certificate",
-                reason = CertificateInvalidException.Reason.TRUST
-            )
+            ?: run {
+                val additionalInfo =
+                    if (DEFAULT_HARDWARE_TRUST_ANCHORS.map { it.encoded }
+                            .firstOrNull { it.contentEquals(root.publicKey.encoded) } != null) ". Found a default HARDWARE Root"
+                    else if (DEFAULT_SOFTWARE_TRUST_ANCHORS.map { it.encoded }
+                            .firstOrNull { it.contentEquals(root.publicKey.encoded) } != null) ". Found a default SOFTWARE Root"
+                    else ". Found: ${root.encoded.encodeBase64()}"
+
+                root.publicKey.encoded
+                throw CertificateInvalidException(
+                    "No matching root certificate$additionalInfo",
+                    reason = CertificateInvalidException.Reason.TRUST
+                )
+            }
         root.verify(matchingTrustAnchor)
     }
 
     protected abstract val trustAnchors: Collection<PublicKey>
 
     protected open fun ParsedAttestationRecord.verifyAttestationTime(verificationDate: Instant) {
-        if(attestationConfiguration.attestationStatementValiditySeconds == null) return //no validity, no checks!
+        if (attestationConfiguration.attestationStatementValiditySeconds == null) return //no validity, no checks!
         val createdAt =
             teeEnforced().creationDateTime().getOrNull() ?: softwareEnforced().creationDateTime().getOrNull()
         if (createdAt == null) throw AttestationValueException(
@@ -140,11 +151,15 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
         runCatching {
-            if (softwareEnforced().attestationApplicationId().get().packageInfos().first()
-                    .packageName() != application.packageName
+            if (!(softwareEnforced().attestationApplicationId().get().packageInfos().any {
+                    it.packageName() == application.packageName
+                })
             ) {
                 throw AttestationValueException(
-                    "Invalid Application Package",
+                    "Invalid Application Package: ${
+                        softwareEnforced().attestationApplicationId().get().packageInfos()
+                            .joinToString { it.packageName() }
+                    } (should be: ${application.packageName})",
                     reason = AttestationValueException.Reason.PACKAGE_NAME
                 )
             }
@@ -191,14 +206,14 @@ abstract class AndroidAttestationChecker(
 
             (versionOverride ?: attestationConfiguration.androidVersion)?.let {
                 if ((osVersion().get()) < it) throw AttestationValueException(
-                    "Android version not supported",
+                    "Android version not supported: ${osVersion().get()} (should be at least $it)",
                     reason = AttestationValueException.Reason.OS_VERSION
                 )
             }
 
             (patchLevel ?: attestationConfiguration.patchLevel)?.let {
                 if ((osPatchLevel().get()).isBefore(YearMonth.of(it.year, it.month))) throw AttestationValueException(
-                    "Patch level not supported",
+                    "Patch level not supported: ${osPatchLevel().get()} (should be at least $it)",
                     reason = AttestationValueException.Reason.OS_VERSION
                 )
             }
