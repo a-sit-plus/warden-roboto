@@ -57,7 +57,7 @@ sourceSets.test {
 
 
 dependencies {
-    implementation(bouncycastle("bcpkix", "jdk18on"))
+    api(bouncycastle("bcpkix", "jdk18on"))
     implementation(ktor("client-core"))
     implementation(ktor("client-content-negotiation"))
     implementation(ktor("serialization-kotlinx-json"))
@@ -67,7 +67,9 @@ dependencies {
     implementation("com.google.auto.value:auto-value-annotations:1.11.0")
     annotationProcessor("com.google.auto.value:auto-value:1.11.0")
     api("com.google.protobuf:protobuf-javalite:4.29.3")
-    api("at.asitplus.signum:indispensable:3.16.3") //for the serializers
+    api("at.asitplus.signum:indispensable:3.16.3")  {
+        exclude("org.bouncycastle", "bcpkix-jdk18on")
+    }
 
 
     //new attestation lib
