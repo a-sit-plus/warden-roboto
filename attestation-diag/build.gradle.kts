@@ -35,5 +35,5 @@ dependencies {
     implementation(project(":warden-roboto"))
     implementation("com.google.auto.value:auto-value-annotations:1.11.0")
     implementation("com.google.code.gson:gson:2.12.1")
-    implementation("at.asitplus.signum:indispensable:3.16.1")
+    implementation("at.asitplus.signum:indispensable:3.16.3")
 }
