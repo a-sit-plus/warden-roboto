@@ -1,6 +1,6 @@
 # 1.0.0
 
-## NEXT
+## 1.8.2
 * Integrate Google's new PKI cert path validator
     * This provides an additional safety net against cert path manipulation
 * Per-App trust anchor overrides
