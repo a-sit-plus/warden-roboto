@@ -72,7 +72,7 @@ dependencies {
     }
 
 
-    //new attestation lib
+    //dependencies for new attestation lib
     implementation("co.nstant.in:cbor:0.9")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")

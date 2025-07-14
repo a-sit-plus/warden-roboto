@@ -86,11 +86,7 @@ abstract class AndroidAttestationChecker(
             newPkixCertPathValidator.validate(
                 KeyAttestationCertPath(certificateChain),
                 PKIXParameters(
-                    setOf(
-                        TrustAnchor(
-                            certificateChain.last(), null
-                        )
-                    )
+                    setOf(TrustAnchor(certificateChain.last(), null))
                 ).apply {
                     date = verificationDate
                     isRevocationEnabled =
