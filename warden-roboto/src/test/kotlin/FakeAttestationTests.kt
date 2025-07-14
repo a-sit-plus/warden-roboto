@@ -143,8 +143,22 @@ class FakeAttestationTests : FreeSpec({
 
         "but not with a real cert from a real device" {
 
+            val checker = HardwareAttestationChecker(
+                AndroidAttestationConfiguration(
+                    AndroidAttestationConfiguration.AppData(
+                        packageName = packageName,
+                        signatureDigests = listOf(signatureDigest),
+                        appVersion = appVersion),
+                    androidVersion = androidVersion,
+                    patchLevel = patchLevel,
+                    requireStrongBox = false,
+                    allowBootloaderUnlock = false,
+                    ignoreLeafValidity = false,
+                )
+            )
+
             shouldThrow<CertificateInvalidException> {
-                checker.verifyAttestation(nokia.attestationCertChain, expectedChallenge = nokia.challenge)
+                checker.verifyAttestation(attestationProof, expectedChallenge = challenge)
             }.reason shouldBe CertificateInvalidException.Reason.TRUST
         }
 

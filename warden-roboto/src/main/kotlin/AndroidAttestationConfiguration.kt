@@ -467,6 +467,11 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
          */
         internal val patchLevelOverride: PatchLevel? = null,
 
+        /**
+         * optional parameter. If set, all globally configured trust anchors are discarded and only the trust anchors specified here are used to attest this app.
+         */
+        val trustAnchorOverrides: Set<@Serializable(with = PubKeyBasePemSerializer::class) PublicKey>? = null,
+
         ) {
         init {
             if (signatureDigests.isEmpty()) throw object :
@@ -503,6 +508,8 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
             private var androidVersionOverride: Int? = null
             private var patchLevelOverride: PatchLevel? = null
 
+            private var trustAnchorOverrides: Set<PublicKey>? = null
+
             /**
              * @see AppData.appVersion
              */
@@ -518,8 +525,20 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
              */
             fun overridePatchLevel(level: PatchLevel) = apply { patchLevelOverride = level }
 
+            /**
+             * optional parameter. If set, all globally configured trust anchors are discarded and only the trust anchors specified here are used to attest this app.
+             */
+            fun overrideTrustAnchors(trustAnchors: Set<PublicKey>) = apply { trustAnchorOverrides = trustAnchors }
+
             fun build() =
-                AppData(packageName, signatureDigests, appVersion, androidVersionOverride, patchLevelOverride)
+                AppData(
+                    packageName,
+                    signatureDigests,
+                    appVersion,
+                    androidVersionOverride,
+                    patchLevelOverride,
+                    trustAnchorOverrides
+                )
         }
 
         override fun toString(): String {
@@ -670,7 +689,8 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
          *
          * **Can be set to `null` to ignore attestation statement validity checking.** In this case, even a faulty attestation statement lacking a creation time will verify.
          */
-        fun attestationStatementValiditySeconds(seconds: Long?) = apply { attestationStatementValiditySeconds = seconds }
+        fun attestationStatementValiditySeconds(seconds: Long?) =
+            apply { attestationStatementValiditySeconds = seconds }
 
         /**
          * @see AndroidAttestationConfiguration.disableHardwareAttestation
