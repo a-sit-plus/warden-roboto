@@ -54,9 +54,9 @@ abstract class AndroidAttestationChecker(
     private val revocationListClient = HttpClient(CIO) { setup(attestationConfiguration.httpProxy) }
 
     @Throws(CertificateInvalidException::class, RevocationException::class)
-    private fun List<X509Certificate>.verifyCertificateChain(verificationDate: Date) {
+    private fun List<X509Certificate>.verifyCertificateChain(verificationDate: Date, actualTrustAnchors: Collection<PublicKey>) {
 
-        runCatching { verifyRootCertificate(verificationDate) }
+        runCatching { verifyRootCertificate(verificationDate, actualTrustAnchors) }
             .onFailure {
                 throw if (it is CertificateInvalidException) it else CertificateInvalidException(
                     "could not verify root certificate (valid from: ${last().notBefore} to ${last().notAfter}), verification date: $verificationDate",
@@ -134,10 +134,10 @@ abstract class AndroidAttestationChecker(
         }
     }
 
-    private fun List<X509Certificate>.verifyRootCertificate(verificationDate: Date) {
+    private fun List<X509Certificate>.verifyRootCertificate(verificationDate: Date, actualTrustAnchors: Collection<PublicKey>) {
         val root = last()
         root.checkValidity(verificationDate)
-        val matchingTrustAnchor = trustAnchors
+        val matchingTrustAnchor = actualTrustAnchors
             .firstOrNull { root.publicKey.encoded.contentEquals(it.encoded) }
             ?: run {
                 val additionalInfo =
@@ -340,9 +340,20 @@ abstract class AndroidAttestationChecker(
     ): ParsedAttestationRecord {
         val actualVerificationDate =
             Date.from(verificationDate.toInstant().plusSeconds(attestationConfiguration.verificationSecondsOffset))
-        certificates.verifyCertificateChain(actualVerificationDate)
 
+
+        //do this before we check everything else to actually identify the app we're having here
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
+        val attestedApp = attestationConfiguration.applications.associateWith { app ->
+            runCatching { parsedAttestationRecord.verifyApplication(app) }
+        }.let {
+            it.entries.firstOrNull { (_, result) -> result.isSuccess } ?: it.values.first().exceptionOrNull()!!
+                .let { throw it }
+        }.key
+
+        val thisAppsTrustAnchors = attestedApp.trustAnchorOverrides?:trustAnchors
+        certificates.verifyCertificateChain(actualVerificationDate, thisAppsTrustAnchors)
+
         if (!verifyChallenge(
                 expectedChallenge,
                 parsedAttestationRecord.attestationChallenge().toByteArray()
@@ -356,12 +367,7 @@ abstract class AndroidAttestationChecker(
         parsedAttestationRecord.verifyBootStateAndSystemImage()
         parsedAttestationRecord.verifyRollbackResistance()
 
-        val attestedApp = attestationConfiguration.applications.associateWith { app ->
-            runCatching { parsedAttestationRecord.verifyApplication(app) }
-        }.let {
-            it.entries.firstOrNull { (_, result) -> result.isSuccess } ?: it.values.first().exceptionOrNull()!!
-                .let { throw it }
-        }.key
+
         parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.patchLevelOverride)
         return parsedAttestationRecord
     }

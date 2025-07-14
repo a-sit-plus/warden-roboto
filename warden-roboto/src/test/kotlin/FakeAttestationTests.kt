@@ -3,7 +3,6 @@ package at.asitplus.attestation.android
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.data.AttestationCreator
 import at.asitplus.attestation.data.AttestationData
-import at.asitplus.attestation.data.attestationCertChain
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -33,7 +32,8 @@ class FakeAttestationTests : FreeSpec({
                 AndroidAttestationConfiguration.AppData(
                     packageName = packageName,
                     signatureDigests = listOf(signatureDigest),
-                    appVersion = appVersion),
+                    appVersion = appVersion
+                ),
                 androidVersion = androidVersion,
                 patchLevel = patchLevel,
                 requireStrongBox = false,
@@ -58,14 +58,16 @@ class FakeAttestationTests : FreeSpec({
                     AndroidAttestationConfiguration.AppData(
                         packageName = packageName,
                         signatureDigests = listOf(signatureDigest),
-                        appVersion = appVersion),
+                        appVersion = appVersion
+                    ),
                     androidVersion = androidVersion,
                     patchLevel = patchLevel,
                     requireStrongBox = false,
                     allowBootloaderUnlock = false,
                     ignoreLeafValidity = false,
                     hardwareAttestationTrustAnchors = setOf(borkedAttestation.last().publicKey)
-                )).verifyAttestation(
+                )
+            ).verifyAttestation(
                 certificates = borkedAttestation,
                 expectedChallenge = challenge
             )
@@ -141,11 +143,74 @@ class FakeAttestationTests : FreeSpec({
 
         }
 
-        "but not with a real cert from a real device" {
+        "but not with a real cert from a real device" - {
+
+            val checker = HardwareAttestationChecker(
+                AndroidAttestationConfiguration(
+                    AndroidAttestationConfiguration.AppData(
+                        packageName = packageName,
+                        signatureDigests = listOf(signatureDigest),
+                        appVersion = appVersion
+                    ),
+                    androidVersion = androidVersion,
+                    patchLevel = patchLevel,
+                    requireStrongBox = false,
+                    allowBootloaderUnlock = false,
+                    ignoreLeafValidity = false,
+                )
+            )
 
             shouldThrow<CertificateInvalidException> {
-                checker.verifyAttestation(nokia.attestationCertChain, expectedChallenge = nokia.challenge)
+                checker.verifyAttestation(attestationProof, expectedChallenge = challenge)
             }.reason shouldBe CertificateInvalidException.Reason.TRUST
+
+            "unless overridden" {
+                val checker = HardwareAttestationChecker(
+                    AndroidAttestationConfiguration(
+                        AndroidAttestationConfiguration.AppData(
+                            packageName = packageName,
+                            signatureDigests = listOf(signatureDigest),
+                            appVersion = appVersion,
+                            trustAnchorOverrides = setOf(attestationProof.last().publicKey)
+                        ),
+                        androidVersion = androidVersion,
+                        patchLevel = patchLevel,
+                        requireStrongBox = false,
+                        allowBootloaderUnlock = false,
+                        ignoreLeafValidity = false,
+                    )
+                )
+                checker.verifyAttestation(
+                    certificates = attestationProof,
+                    expectedChallenge = challenge
+                )
+            }
+
+            shouldThrow<CertificateInvalidException> {
+                checker.verifyAttestation(attestationProof, expectedChallenge = challenge)
+            }.reason shouldBe CertificateInvalidException.Reason.TRUST
+
+            "but never without trust anchors" {
+                val checker = HardwareAttestationChecker(
+                    AndroidAttestationConfiguration(
+                        AndroidAttestationConfiguration.AppData(
+                            packageName = packageName,
+                            signatureDigests = listOf(signatureDigest),
+                            appVersion = appVersion,
+                            trustAnchorOverrides = setOf()
+                        ),
+                        androidVersion = androidVersion,
+                        patchLevel = patchLevel,
+                        requireStrongBox = false,
+                        allowBootloaderUnlock = false,
+                        ignoreLeafValidity = false,
+                    )
+                )
+                shouldThrow<CertificateInvalidException> {
+                    checker.verifyAttestation(attestationProof, expectedChallenge = challenge)
+                }.reason shouldBe CertificateInvalidException.Reason.TRUST
+            }
+
         }
 
         "and the fake attestation must not verify against the google root key" {
