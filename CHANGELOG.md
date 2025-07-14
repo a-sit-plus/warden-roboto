@@ -1,6 +1,14 @@
 # 1.0.0
 
 ## NEXT
+* Integrate Google's new PKI cert path validator
+    * This provides an additional safety net against cert path manipulation
+* Per-App trust anchor overrides
+* BEHAVIOURAL CHANGE:
+  * Per-App trust anchor overrides changes the order of checks on Android:
+    * App-metadata checks are now performed first
+    * Consequence: package, signature, … mismatches are reported even before certificate chain validation errors
+* More insightful error messages on attestation failure
 * Kotlin 2.1.21
 * Bouncy Castle 1.81
 * KmmResult 1.9.3
