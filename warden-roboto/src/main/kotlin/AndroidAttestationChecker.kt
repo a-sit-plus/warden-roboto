@@ -54,12 +54,17 @@ abstract class AndroidAttestationChecker(
     private val revocationListClient = HttpClient(CIO) { setup(attestationConfiguration.httpProxy) }
 
     @Throws(CertificateInvalidException::class, RevocationException::class)
-    private fun List<X509Certificate>.verifyCertificateChain(verificationDate: Date, actualTrustAnchors: Collection<PublicKey>) {
+    private fun List<X509Certificate>.verifyCertificateChain(
+        verificationDate: Date,
+        actualTrustAnchors: Collection<PublicKey>
+    ) {
 
         runCatching { verifyRootCertificate(verificationDate, actualTrustAnchors) }
             .onFailure {
                 throw if (it is CertificateInvalidException) it else CertificateInvalidException(
-                    "could not verify root certificate (valid from: ${last().notBefore} to ${last().notAfter}), verification date: $verificationDate",
+                    "could not verify root certificate (valid from: ${last().notBefore} to ${last().notAfter}), verification date: $verificationDate. Full chain:\n  ${
+                        joinToString("\n    ") { it.encoded.encodeBase64() }
+                    }",
                     cause = it,
                     if ((it is CertificateExpiredException) || (it is CertificateNotYetValidException)) CertificateInvalidException.Reason.TIME else CertificateInvalidException.Reason.TRUST
                 )
@@ -78,7 +83,7 @@ abstract class AndroidAttestationChecker(
             } else this
 
         certificateChain.reversed().zipWithNext { parent, certificate ->
-            verifyCertificatePair(certificate, parent, verificationDate, revocationStatusList)
+            verifyCertificatePair(certificate, parent, verificationDate, revocationStatusList, certificateChain)
         }
 
         //now we double-check against the new validator to rule out manipulations of the certificate chain
@@ -95,7 +100,8 @@ abstract class AndroidAttestationChecker(
             )
         }.onFailure {
             throw CertificateInvalidException(
-                it.message ?: "Invalid certificate chain",
+                it.message
+                    ?: "Invalid certificate chain:\n  ${certificateChain.joinToString("\n    ") { it.encoded.encodeBase64() }}",
                 it,
                 CertificateInvalidException.Reason.TRUST //we have ruled out time beforehand
             )
@@ -108,14 +114,20 @@ abstract class AndroidAttestationChecker(
         certificate: X509Certificate,
         parent: X509Certificate,
         verificationDate: Date,
-        statusList: RevocationList
+        statusList: RevocationList,
+        fullChainForDebugging: List<X509Certificate>
     ) {
         runCatching {
             certificate.checkValidity(verificationDate)
             certificate.verify(parent.publicKey)
         }.onFailure {
             throw CertificateInvalidException(
-                it.message ?: "Certificate invalid",
+                it.message
+                    ?: "Certificate invalid: ${certificate.encoded.encodeBase64()}\n  Full Chain: ${
+                        fullChainForDebugging.joinToString(
+                            "\n    "
+                        ) { it.encoded.encodeBase64() }
+                    }",
                 it,
                 if ((it is CertificateExpiredException) || (it is CertificateNotYetValidException)) CertificateInvalidException.Reason.TIME else CertificateInvalidException.Reason.TRUST
             )
@@ -124,7 +136,14 @@ abstract class AndroidAttestationChecker(
             statusList.isRevoked(certificate.serialNumber)
         }.onSuccess {
             if (it)
-                throw RevocationException("Certificate revoked", reason = RevocationException.Reason.REVOKED)
+                throw RevocationException(
+                    "Certificate revoked:\n  Certificate: ${certificate.encoded.encodeBase64()}\n  Full chain: ${
+                        fullChainForDebugging.joinToString(
+                            "\n    "
+                        ) { it.encoded.encodeBase64() }
+                    }",
+                    reason = RevocationException.Reason.REVOKED
+                )
         }.onFailure {
             throw RevocationException(
                 "Could not init revocation list",
@@ -134,7 +153,10 @@ abstract class AndroidAttestationChecker(
         }
     }
 
-    private fun List<X509Certificate>.verifyRootCertificate(verificationDate: Date, actualTrustAnchors: Collection<PublicKey>) {
+    private fun List<X509Certificate>.verifyRootCertificate(
+        verificationDate: Date,
+        actualTrustAnchors: Collection<PublicKey>
+    ) {
         val root = last()
         root.checkValidity(verificationDate)
         val matchingTrustAnchor = actualTrustAnchors
@@ -149,7 +171,7 @@ abstract class AndroidAttestationChecker(
 
                 root.publicKey.encoded
                 throw CertificateInvalidException(
-                    "No matching root certificate$additionalInfo",
+                    "No matching root certificate$additionalInfo\n  Full chain:\n  ${joinToString("\n    ") { it.encoded.encodeBase64() }}",
                     reason = CertificateInvalidException.Reason.TRUST
                 )
             }
@@ -183,6 +205,7 @@ abstract class AndroidAttestationChecker(
 
     @Throws(AttestationValueException::class)
     private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
+        //TODO revamp this
         runCatching {
             if (!(softwareEnforced().attestationApplicationId().get().packageInfos().any {
                     it.packageName() == application.packageName
@@ -351,15 +374,16 @@ abstract class AndroidAttestationChecker(
                 .let { throw it }
         }.key
 
-        val thisAppsTrustAnchors = attestedApp.trustAnchorOverrides?:trustAnchors
+        val thisAppsTrustAnchors = attestedApp.trustAnchorOverrides ?: trustAnchors
         certificates.verifyCertificateChain(actualVerificationDate, thisAppsTrustAnchors)
 
+        val receivedChallenge = parsedAttestationRecord.attestationChallenge().toByteArray()
         if (!verifyChallenge(
                 expectedChallenge,
-                parsedAttestationRecord.attestationChallenge().toByteArray()
+                receivedChallenge
             )
         ) throw AttestationValueException(
-            "verification of attestation challenge failed",
+            "verification of attestation challenge failed. Expected challenge: ${expectedChallenge.encodeBase64()}, received challenge: ${receivedChallenge.encodeBase64()}",
             reason = AttestationValueException.Reason.CHALLENGE
         )
         parsedAttestationRecord.verifyAttestationTime(verificationDate.toInstant())
