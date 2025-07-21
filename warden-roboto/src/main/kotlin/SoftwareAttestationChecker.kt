@@ -39,10 +39,14 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifySecurityLevel() {
         if (attestationSecurityLevel() != ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
-            "Attestation security level not software", reason = AttestationValueException.Reason.SEC_LEVEL
+            "Attestation security level not software", reason = AttestationValueException.Reason.SEC_LEVEL,
+            expectedValue = ParsedAttestationRecord.SecurityLevel.SOFTWARE,
+            actualValue = attestationSecurityLevel()
         )
         if (keymasterSecurityLevel() != ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
-            "Keymaster security level not software", reason = AttestationValueException.Reason.SEC_LEVEL
+            "Keymaster security level not software", reason = AttestationValueException.Reason.SEC_LEVEL,
+            expectedValue =  ParsedAttestationRecord.SecurityLevel.SOFTWARE,
+            actualValue = keymasterSecurityLevel()
         )
     }
 

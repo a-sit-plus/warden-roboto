@@ -31,23 +31,31 @@ class HardwareAttestationChecker @JvmOverloads constructor(
             if (attestationSecurityLevel() != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
                 throw AttestationValueException(
                     "Attestation security level not StrongBox",
-                    reason = AttestationValueException.Reason.SEC_LEVEL
+                    reason = AttestationValueException.Reason.SEC_LEVEL,
+                    expectedValue = ParsedAttestationRecord.SecurityLevel.STRONG_BOX,
+                    actualValue = attestationSecurityLevel()
                 )
             if (keymasterSecurityLevel() != ParsedAttestationRecord.SecurityLevel.STRONG_BOX)
                 throw AttestationValueException(
                     "Keymaster security level not StrongBox",
-                    reason = AttestationValueException.Reason.SEC_LEVEL
+                    reason = AttestationValueException.Reason.SEC_LEVEL,
+                    expectedValue = ParsedAttestationRecord.SecurityLevel.STRONG_BOX,
+                    actualValue = keymasterSecurityLevel()
                 )
         } else {
             if (attestationSecurityLevel() == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
                 throw AttestationValueException(
                     "Attestation security level software",
-                    reason = AttestationValueException.Reason.SEC_LEVEL
+                    reason = AttestationValueException.Reason.SEC_LEVEL,
+                    expectedValue = ParsedAttestationRecord.SecurityLevel.TRUSTED_ENVIRONMENT,
+                    actualValue = attestationSecurityLevel()
                 )
             if (keymasterSecurityLevel() == ParsedAttestationRecord.SecurityLevel.SOFTWARE)
                 throw AttestationValueException(
                     "Keymaster security level software",
-                    reason = AttestationValueException.Reason.SEC_LEVEL
+                    reason = AttestationValueException.Reason.SEC_LEVEL,
+                    expectedValue = ParsedAttestationRecord.SecurityLevel.TRUSTED_ENVIRONMENT,
+                    actualValue = keymasterSecurityLevel()
                 )
         }
     }

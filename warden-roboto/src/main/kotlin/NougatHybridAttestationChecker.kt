@@ -30,16 +30,22 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
     override fun ParsedAttestationRecord.verifySecurityLevel() {
         if (attestationConfiguration.requireStrongBox) {
             if (keymasterSecurityLevel() != ParsedAttestationRecord.SecurityLevel.STRONG_BOX) throw AttestationValueException(
-                "Keymaster security level not StrongBox", reason = AttestationValueException.Reason.SEC_LEVEL
+                "Keymaster security level not StrongBox", reason = AttestationValueException.Reason.SEC_LEVEL,
+                expectedValue = ParsedAttestationRecord.SecurityLevel.STRONG_BOX,
+                actualValue = keymasterSecurityLevel()
             )
         } else {
             if (keymasterSecurityLevel() == ParsedAttestationRecord.SecurityLevel.SOFTWARE) throw AttestationValueException(
-                "Keymaster security level software", reason = AttestationValueException.Reason.SEC_LEVEL
+                "Keymaster security level software", reason = AttestationValueException.Reason.SEC_LEVEL,
+                expectedValue = ParsedAttestationRecord.SecurityLevel.TRUSTED_ENVIRONMENT,
+                actualValue = keymasterSecurityLevel()
             )
         }
         if (attestationSecurityLevel() != ParsedAttestationRecord.SecurityLevel.SOFTWARE) {
             throw AttestationValueException(
-                "Attestation security level not software", reason = AttestationValueException.Reason.SEC_LEVEL
+                "Attestation security level not software", reason = AttestationValueException.Reason.SEC_LEVEL,
+                expectedValue = ParsedAttestationRecord.SecurityLevel.SOFTWARE,
+                actualValue = attestationSecurityLevel()
             )
         }
     }

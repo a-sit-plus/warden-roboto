@@ -1,6 +1,7 @@
 # 1.0.0
 
 ## NEXT
+* Attach more context to exceptions
 
 ## 1.8.2
 * Integrate Google's new PKI cert path validator
