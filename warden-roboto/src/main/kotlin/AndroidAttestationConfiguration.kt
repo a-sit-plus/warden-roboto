@@ -11,10 +11,22 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.*
 
 /**
- * Nomen est omen
+ * Represents a Patch level configuration property.
+ * Patch levels are defined as [year] and [month].
+ *
+ * [maxFuturePatchLevelMonths] indicates how far in the future a patch level parsed from an attestation record can be
+ * for it to still be considered valid. It is specified in months and defaults to `1`. This is a sensible default because
+ * it is possible that, for example, a July security patch is actually rolled out by the end of June.
+ * To ignore patch levels from the future (i.e. to consider all patch levels from the future perfectly valid),
+ * set this property to `null`. For testing purposes, this property may also be set to a negative number. Hence, it is
+ * represented as a signed integer.
  */
 @Serializable
-data class PatchLevel(val year: Int, val month: Int) {
+data class PatchLevel @JvmOverloads constructor(
+    val year: Int,
+    val month: Int,
+    val maxFuturePatchLevelMonths: Int? = 1
+) {
     val asSingleInt: Int by lazy {
         ("%04d".format(year) + "%02d".format(month)).toInt()
     }

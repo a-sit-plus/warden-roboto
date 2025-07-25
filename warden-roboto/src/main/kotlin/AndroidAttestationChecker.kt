@@ -34,6 +34,7 @@ import java.security.cert.*
 import java.time.Duration
 import java.time.Instant
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -273,10 +274,11 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     protected abstract fun ParsedAttestationRecord.verifyAndroidVersion(
         versionOverride: Int? = null,
-        osPatchLevel: PatchLevel?
+        osPatchLevel: PatchLevel?,
+        verificationDate: Date
     )
 
-    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: PatchLevel?) {
+    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: PatchLevel?, verificationDate: Date) {
         runCatching {
 
             (versionOverride ?: attestationConfiguration.androidVersion)?.let {
@@ -291,6 +293,21 @@ abstract class AndroidAttestationChecker(
             (patchLevel ?: attestationConfiguration.patchLevel)?.let {
                 if ((osPatchLevel().get()).isBefore(YearMonth.of(it.year, it.month))) throw AttestationValueException(
                     "Patch level not supported: ${osPatchLevel().get()} (should be at least $it)",
+                    reason = AttestationValueException.Reason.OS_VERSION,
+                    expectedValue = it,
+                    actualValue = osPatchLevel().get()
+                )
+            }
+
+            (patchLevel ?: attestationConfiguration.patchLevel)?.let {
+                val maxFuturePatchLevelMonths = it.maxFuturePatchLevelMonths
+                if(maxFuturePatchLevelMonths == null) return@let
+                val fromAttestation= osPatchLevel().get()
+                val calendar = Calendar.getInstance().apply { time = verificationDate }
+                val currentYearMonth = YearMonth.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH))
+                val difference = currentYearMonth.until(fromAttestation, ChronoUnit.MONTHS)
+                if (difference>maxFuturePatchLevelMonths!!.toLong()) throw AttestationValueException(
+                    "Patch level is $difference months in the future. Maximum amount time travel allowed is: $maxFuturePatchLevelMonths months",
                     reason = AttestationValueException.Reason.OS_VERSION,
                     expectedValue = it,
                     actualValue = osPatchLevel().get()
@@ -427,7 +444,7 @@ abstract class AndroidAttestationChecker(
         parsedAttestationRecord.verifyRollbackResistance()
 
 
-        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.patchLevelOverride)
+        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.patchLevelOverride, verificationDate)
         return parsedAttestationRecord
     }
 
