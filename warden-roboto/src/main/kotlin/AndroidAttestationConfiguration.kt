@@ -816,10 +816,10 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
 }
 
 private fun ByteArray.parsePublicKey() =
-    runCatching {
+    catchingUnwrapped {
         KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(this))
     }.getOrElse {
-        runCatching {
+        catchingUnwrapped {
             KeyFactory.getInstance("RSA").generatePublic(X509EncodedKeySpec(this))
         }.getOrElse {
             throw object : AndroidAttestationException("Not a valid public key: ${this.encodeBase64()}", null) {}

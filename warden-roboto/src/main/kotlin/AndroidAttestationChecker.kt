@@ -59,8 +59,7 @@ abstract class AndroidAttestationChecker(
         verificationDate: Date,
         actualTrustAnchors: Collection<PublicKey>
     ) {
-
-        runCatching { verifyRootCertificate(verificationDate, actualTrustAnchors) }
+        catchingUnwrapped { verifyRootCertificate(verificationDate, actualTrustAnchors) }
             .onFailure {
                 throw if (it is CertificateInvalidException) it else CertificateInvalidException.InvalidRoot(
                     message = "could not verify root certificate (valid from: ${last().notBefore} to ${last().notAfter}), verification date: $verificationDate",
@@ -70,7 +69,7 @@ abstract class AndroidAttestationChecker(
                     invalidCertificate = last()
                 )
             }
-        val revocationStatusList = runCatching { RevocationList.fromGoogleServer(client = revocationListClient) }
+        val revocationStatusList = catchingUnwrapped { RevocationList.fromGoogleServer(client = revocationListClient) }
             .getOrElse {
                 throw RevocationException.ListUnavailable(
                     "could not download revocation information",
@@ -118,7 +117,7 @@ abstract class AndroidAttestationChecker(
         statusList: RevocationList,
         fullChainForDebugging: List<X509Certificate>
     ) {
-        runCatching {
+        catchingUnwrapped {
             certificate.checkValidity(verificationDate)
             certificate.verify(parent.publicKey)
         }.onFailure {
@@ -130,7 +129,7 @@ abstract class AndroidAttestationChecker(
                 invalidCertificate = certificate
             )
         }
-        runCatching {
+        catchingUnwrapped {
             statusList.isRevoked(certificate.serialNumber)
         }.onSuccess {
             if (it)
@@ -216,7 +215,7 @@ abstract class AndroidAttestationChecker(
     @Throws(AttestationValueException::class)
     private fun ParsedAttestationRecord.verifyApplication(application: AndroidAttestationConfiguration.AppData) {
         //TODO revamp this
-        runCatching {
+        catchingUnwrapped {
             if (!(softwareEnforced().attestationApplicationId().get().packageInfos().any {
                     it.packageName() == application.packageName
                 })
@@ -278,52 +277,53 @@ abstract class AndroidAttestationChecker(
         verificationDate: Date
     )
 
-    protected fun AuthorizationList.verifyAndroidVersion(versionOverride: Int?, patchLevel: PatchLevel?, verificationDate: Date) {
-        runCatching {
+    protected fun AuthorizationList.verifyAndroidVersion(
+        versionOverride: Int?,
+        patchLevel: PatchLevel?,
+        verificationDate: Date
+    ) = catchingUnwrapped {
+        (versionOverride ?: attestationConfiguration.androidVersion)?.let {
+            if ((osVersion().get()) < it) throw AttestationValueException(
+                "Android version not supported: ${osVersion().get()} (should be at least $it)",
+                reason = AttestationValueException.Reason.OS_VERSION,
+                expectedValue = it,
+                actualValue = osVersion().get()
+            )
+        }
 
-            (versionOverride ?: attestationConfiguration.androidVersion)?.let {
-                if ((osVersion().get()) < it) throw AttestationValueException(
-                    "Android version not supported: ${osVersion().get()} (should be at least $it)",
-                    reason = AttestationValueException.Reason.OS_VERSION,
-                    expectedValue = it,
-                    actualValue = osVersion().get()
-                )
-            }
+        (patchLevel ?: attestationConfiguration.patchLevel)?.let {
+            if ((osPatchLevel().get()).isBefore(YearMonth.of(it.year, it.month))) throw AttestationValueException(
+                "Patch level not supported: ${osPatchLevel().get()} (should be at least $it)",
+                reason = AttestationValueException.Reason.OS_VERSION,
+                expectedValue = it,
+                actualValue = osPatchLevel().get()
+            )
+        }
 
-            (patchLevel ?: attestationConfiguration.patchLevel)?.let {
-                if ((osPatchLevel().get()).isBefore(YearMonth.of(it.year, it.month))) throw AttestationValueException(
-                    "Patch level not supported: ${osPatchLevel().get()} (should be at least $it)",
-                    reason = AttestationValueException.Reason.OS_VERSION,
-                    expectedValue = it,
-                    actualValue = osPatchLevel().get()
-                )
-            }
-
-            (patchLevel ?: attestationConfiguration.patchLevel)?.let {
-                val maxFuturePatchLevelMonths = it.maxFuturePatchLevelMonths
-                if(maxFuturePatchLevelMonths == null) return@let
-                val fromAttestation= osPatchLevel().get()
+        (patchLevel ?: attestationConfiguration.patchLevel)?.let {
+            it.maxFuturePatchLevelMonths?.let { maxFuturePatchLevelMonths ->
+                val fromAttestation = osPatchLevel().get()
                 val calendar = Calendar.getInstance().apply { time = verificationDate }
                 val currentYearMonth = YearMonth.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH))
                 val difference = currentYearMonth.until(fromAttestation, ChronoUnit.MONTHS)
-                if (difference>maxFuturePatchLevelMonths!!.toLong()) throw AttestationValueException(
+                if (difference > maxFuturePatchLevelMonths!!.toLong()) throw AttestationValueException(
                     "Patch level is $difference months in the future. Maximum amount time travel allowed is: $maxFuturePatchLevelMonths months",
                     reason = AttestationValueException.Reason.OS_VERSION,
                     expectedValue = it,
                     actualValue = osPatchLevel().get()
                 )
             }
-        }.onFailure {
-            throw when (it) {
-                is AttestationValueException -> it
-                else -> AttestationValueException(
-                    "Could not verify Android Version",
-                    it,
-                    AttestationValueException.Reason.OS_VERSION,
-                    expectedValue = "Correct Android OS version",
-                    actualValue = this
-                )
-            }
+        }
+    }.onFailure {
+        throw when (it) {
+            is AttestationValueException -> it
+            else -> AttestationValueException(
+                "Could not verify Android Version",
+                it,
+                AttestationValueException.Reason.OS_VERSION,
+                expectedValue = "Correct Android OS version",
+                actualValue = this
+            )
         }
     }
 
@@ -418,7 +418,7 @@ abstract class AndroidAttestationChecker(
         //do this before we check everything else to actually identify the app we're having here
         val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
         val attestedApp = attestationConfiguration.applications.associateWith { app ->
-            runCatching { parsedAttestationRecord.verifyApplication(app) }
+            catchingUnwrapped { parsedAttestationRecord.verifyApplication(app) }
         }.let {
             it.entries.firstOrNull { (_, result) -> result.isSuccess } ?: it.values.first().exceptionOrNull()!!
                 .let { throw it }
@@ -444,7 +444,11 @@ abstract class AndroidAttestationChecker(
         parsedAttestationRecord.verifyRollbackResistance()
 
 
-        parsedAttestationRecord.verifyAndroidVersion(attestedApp.androidVersionOverride, attestedApp.patchLevelOverride, verificationDate)
+        parsedAttestationRecord.verifyAndroidVersion(
+            attestedApp.androidVersionOverride,
+            attestedApp.patchLevelOverride,
+            verificationDate
+        )
         return parsedAttestationRecord
     }
 

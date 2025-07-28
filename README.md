@@ -102,7 +102,7 @@ AndroidAttestationConfiguration(
         )
     ),
     androidVersion = 110000,                //OPTIONAL, null by default
-    patchLevel = PatchLevel(2022, 12),      //OPTIONAL, null by default, maxFuturePatchLevelMonths defaults to 1
+    patchLevel = PatchLevel(2022, 12),      //OPTIONAL, null by default, maxFuturePatchLevelMonths defaults to 1, if not set
     requireStrongBox = false,               //OPTIONAL, defaults to false
     allowBootloaderUnlock = false,          //OPTIONAL, defaults to false
     requireRollbackResistance = false,      //OPTIONAL, defaults to false
