@@ -34,6 +34,7 @@ import java.security.cert.*
 import java.time.Duration
 import java.time.Instant
 import java.time.YearMonth
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -277,11 +278,12 @@ abstract class AndroidAttestationChecker(
         verificationDate: Date
     )
 
+    @Throws(AttestationValueException::class)
     protected fun AuthorizationList.verifyAndroidVersion(
         versionOverride: Int?,
         patchLevel: PatchLevel?,
         verificationDate: Date
-    ) = catchingUnwrapped {
+    ):Unit  = catchingUnwrapped {
         (versionOverride ?: attestationConfiguration.androidVersion)?.let {
             if ((osVersion().get()) < it) throw AttestationValueException(
                 "Android version not supported: ${osVersion().get()} (should be at least $it)",
@@ -314,7 +316,8 @@ abstract class AndroidAttestationChecker(
                 )
             }
         }
-    }.onFailure {
+        Unit
+    }.getOrElse {
         throw when (it) {
             is AttestationValueException -> it
             else -> AttestationValueException(

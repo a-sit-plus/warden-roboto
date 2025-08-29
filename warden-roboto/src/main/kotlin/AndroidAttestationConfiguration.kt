@@ -1,6 +1,7 @@
 package at.asitplus.attestation.android
 
 import at.asitplus.attestation.android.exceptions.AndroidAttestationException
+import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.io.ByteArrayBase64UrlSerializer
 import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import io.ktor.util.*
