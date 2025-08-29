@@ -1,6 +1,7 @@
 package at.asitplus.attestation.android.exceptions
 
 import at.asitplus.attestation.android.SoftwareAttestationChecker
+import at.asitplus.attestation.android.contentEqualsIfArray
 import java.security.cert.X509Certificate
 
 /**
@@ -100,8 +101,8 @@ class AttestationValueException(
         if (!super.equals(other)) return false
 
         if (reason != other.reason) return false
-        if (expectedValue != other.expectedValue) return false
-        if (actualValue != other.actualValue) return false
+        if (!expectedValue.contentEqualsIfArray(other.expectedValue)) return false
+        if (!actualValue.contentEqualsIfArray(other.actualValue)) return false
 
         return true
     }
@@ -207,7 +208,7 @@ open class CertificateInvalidException(
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (other !is OtherMatchingRoot) return false
+            if (other !is NoMatchingRoot) return false
             if (!super.equals(other)) return false
             return true
         }
@@ -223,7 +224,7 @@ open class CertificateInvalidException(
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (other !is OtherMatchingRoot) return false
+            if (other !is InvalidRoot) return false
             if (!super.equals(other)) return false
             return true
         }

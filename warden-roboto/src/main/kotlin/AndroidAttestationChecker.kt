@@ -253,7 +253,7 @@ abstract class AndroidAttestationChecker(
                     "Invalid Application Signature Digest",
                     reason = AttestationValueException.Reason.APP_SIGNER_DIGEST,
                     expectedValue = application.signatureDigests,
-                    actualValue = softwareEnforced().attestationApplicationId().get().signatureDigests()
+                    actualValue = softwareEnforced().attestationApplicationId().get().signatureDigests().map { it.toByteArray() }
                 )
             }
         }.onFailure {

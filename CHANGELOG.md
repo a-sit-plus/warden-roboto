@@ -2,6 +2,7 @@
 
 ## NEXT
 * Attach more context to exceptions
+* Fix `AttestationValueException` equality check
 * Verify that patch levels are not too far in the future (default leeway: 1 month)
 * Dependency Update
   * Indispensable 3.17.0
