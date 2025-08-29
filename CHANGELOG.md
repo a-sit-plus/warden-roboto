@@ -2,6 +2,9 @@
 
 ## NEXT
 * Attach more context to exceptions
+* Dependency Update
+  * Indispensable 3.17.0
+* Change kotlinx.datetime to kotlin.time
 
 ## 1.8.2
 * Integrate Google's new PKI cert path validator
