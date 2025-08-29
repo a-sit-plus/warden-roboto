@@ -1,6 +1,7 @@
 package at.asitplus.attestation.android
 
 import at.asitplus.attestation.android.exceptions.AndroidAttestationException
+import at.asitplus.catchingUnwrapped
 import at.asitplus.signum.indispensable.io.ByteArrayBase64UrlSerializer
 import com.google.android.attestation.Constants.GOOGLE_ROOT_CA_PUB_KEY
 import io.ktor.util.*
@@ -8,15 +9,48 @@ import kotlinx.serialization.Serializable
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
+import java.time.YearMonth
 import java.util.*
+import kotlin.math.absoluteValue
 
 /**
- * Nomen est omen
+ * Represents a Patch level configuration property.
+ * Patch levels are defined as [year] and [month].
+ *
+ * [maxFuturePatchLevelMonths] indicates how far in the future a patch level parsed from an attestation record can be
+ * for it to still be considered valid. It is specified in months and defaults to `1`. This is a sensible default because
+ * it is possible that, for example, a July security patch is actually rolled out by the end of June.
+ * To ignore patch levels from the future (i.e. to consider all patch levels from the future perfectly valid),
+ * set this property to `null`. For testing purposes, this property may also be set to a negative number. Hence, it is
+ * represented as a signed integer.
  */
 @Serializable
-data class PatchLevel(val year: Int, val month: Int) {
+data class PatchLevel @JvmOverloads constructor(
+    val year: Int,
+    val month: Int,
+    val maxFuturePatchLevelMonths: Int? = 1
+) {
+
+    constructor(yearMonth: YearMonth, maxFuturePatchLevelMonths: Int? = 1) : this(
+        yearMonth.year,
+        yearMonth.month.value,
+        maxFuturePatchLevelMonths
+    )
+
     val asSingleInt: Int by lazy {
         ("%04d".format(year) + "%02d".format(month)).toInt()
+    }
+
+    val asYearMonth: YearMonth by lazy { YearMonth.of(year, month) }
+
+    companion object {
+
+        fun fromSingleInt(yearMothInt: Int, maxFuturePatchLevelMonths: Int? = 1): PatchLevel {
+            val year = yearMothInt / 100
+            val month = yearMothInt.absoluteValue % 100
+            require(month in 1..12) { "$yearMothInt outside valid range" }
+            return PatchLevel(year, month, maxFuturePatchLevelMonths)
+        }
     }
 }
 
@@ -804,10 +838,10 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
 }
 
 private fun ByteArray.parsePublicKey() =
-    runCatching {
+    catchingUnwrapped {
         KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(this))
     }.getOrElse {
-        runCatching {
+        catchingUnwrapped {
             KeyFactory.getInstance("RSA").generatePublic(X509EncodedKeySpec(this))
         }.getOrElse {
             throw object : AndroidAttestationException("Not a valid public key: ${this.encodeBase64()}", null) {}

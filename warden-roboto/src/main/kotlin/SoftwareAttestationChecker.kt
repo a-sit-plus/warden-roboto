@@ -53,8 +53,8 @@ class SoftwareAttestationChecker @JvmOverloads constructor(
     override val trustAnchors: Collection<PublicKey> = attestationConfiguration.softwareAttestationTrustAnchors
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: PatchLevel?) =
-        softwareEnforced().verifyAndroidVersion(versionOverride, osPatchLevel)
+    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: PatchLevel?, verificationDate: Date) =
+        softwareEnforced().verifyAndroidVersion(versionOverride, osPatchLevel, verificationDate)
 
     @Throws(AttestationValueException::class)
     override fun ParsedAttestationRecord.verifyBootStateAndSystemImage() {

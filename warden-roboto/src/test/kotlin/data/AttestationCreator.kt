@@ -39,6 +39,7 @@ object AttestationCreator {
         vendorPatchLevel: Int?=null,
         verifiedBootKey: ByteArray = Random.nextBytes(32),
         verifiedBootHash: ByteArray = Random.nextBytes(32),
+        creationTime: Date = Date(),
     ): List<X509Certificate> = create(
         KeyAttestationDefs(
             attestationVersion = 4,
@@ -48,7 +49,7 @@ object AttestationCreator {
             attestationChallenge = challenge,
             uniqueId = byteArrayOf(),
             softwareEnforced = SecurityProperties(
-                creationDateTime = Instant.now(),
+                creationDateTime = Instant.ofEpochMilli(creationTime.time),
                 applicationInfo = KeyAttestationApplicationInfo(
                     packageName = packageName,
                     version = appVersion,
@@ -67,18 +68,19 @@ object AttestationCreator {
                 androidPatchLevel = androidPatchLevel,
                 vendorPatchLevel = vendorPatchLevel,
             )
-        )
+        ),
+        certificateCreation = creationTime,
     )
 
-    private fun create(keyAttestation: KeyAttestationDefs): List<X509Certificate> {
+    private fun create(keyAttestation: KeyAttestationDefs, certificateCreation: Date): List<X509Certificate> {
         val rootKeyPair = KeyPairGenerator.getInstance("EC").also {
             it.initialize(256)
         }.genKeyPair()
         val rootCert = X509v3CertificateBuilder(
             /* issuer = */ X500Name("CN=Root"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
-            /* notBefore = */ Date(),
-            /* notAfter = */ Date(Date().time + 1000L * 60L * 60L /* = 60 minutes */),
+            /* notBefore = */ certificateCreation,
+            /* notAfter = */ Date(certificateCreation.time + 1000L * 60L * 60L /* = 60 minutes */),
             /* subject = */ X500Name("CN=Root"),
             /* publicKeyInfo = */ rootKeyPair.subjectPublicKeyInfo()
         ).build(rootKeyPair.contentSigner()).toX509Certificate()
@@ -89,8 +91,8 @@ object AttestationCreator {
         val intermediateCert = X509v3CertificateBuilder(
             /* issuer = */ X500Name("CN=Root"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
-            /* notBefore = */ Date(),
-            /* notAfter = */ Date(Date().time + 1000L * 60L * 60L /* = 60 minutes */),
+            /* notBefore = */ certificateCreation,
+            /* notAfter = */ Date(certificateCreation.time + 1000L * 60L * 60L /* = 60 minutes */),
             /* subject = */ X500Name("CN=Intermediate"),
             /* publicKeyInfo = */ intermediateKeyPair.subjectPublicKeyInfo()
         ).build(rootKeyPair.contentSigner()).toX509Certificate()
@@ -101,8 +103,8 @@ object AttestationCreator {
         val leafCert = X509v3CertificateBuilder(
             /* issuer = */ X500Name("CN=Intermediate"),
             /* serial = */ BigInteger.valueOf(Random.nextLong()),
-            /* notBefore = */ Date(),
-            /* notAfter = */ Date(Date().time + 1000L * 60L * 60L /* = 60 minutes */),
+            /* notBefore = */ certificateCreation,
+            /* notAfter = */ Date(certificateCreation.time + 1000L * 60L * 60L /* = 60 minutes */),
             /* subject = */ X500Name("CN=Subject"),
             /* publicKeyInfo = */ leafKeyPair.subjectPublicKeyInfo()
         ).addExtension(

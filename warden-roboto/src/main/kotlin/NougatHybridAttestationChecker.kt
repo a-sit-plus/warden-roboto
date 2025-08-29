@@ -53,7 +53,7 @@ class NougatHybridAttestationChecker @JvmOverloads constructor(
     override val trustAnchors = attestationConfiguration.softwareAttestationTrustAnchors
 
     @Throws(AttestationValueException::class)
-    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: PatchLevel?) {
+    override fun ParsedAttestationRecord.verifyAndroidVersion(versionOverride: Int?, osPatchLevel: PatchLevel?, verificationDate: Date) {
         //impossible
     }
 
