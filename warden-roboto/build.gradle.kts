@@ -67,7 +67,7 @@ dependencies {
     implementation("com.google.auto.value:auto-value-annotations:1.11.0")
     annotationProcessor("com.google.auto.value:auto-value:1.11.0")
     api("com.google.protobuf:protobuf-javalite:4.29.3")
-    api("at.asitplus.signum:indispensable:3.16.3")  {
+    api("at.asitplus.signum:indispensable:3.17.0")  {
         exclude("org.bouncycastle", "bcpkix-jdk18on")
     }
 

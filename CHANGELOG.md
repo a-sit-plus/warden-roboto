@@ -3,6 +3,9 @@
 ## NEXT
 * Attach more context to exceptions
 * Verify that patch levels are not too far in the future (default leeway: 1 month)
+* Dependency Update
+  * Indispensable 3.17.0
+* Change kotlinx.datetime to kotlin.time
 
 ## 1.8.2
 * Integrate Google's new PKI cert path validator
