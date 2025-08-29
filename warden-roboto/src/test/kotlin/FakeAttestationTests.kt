@@ -86,15 +86,15 @@ class FakeAttestationTests : FreeSpec({
 
         "patch levels from the future" - {
 
+            val yearMonth = YearMonth.of(patchLevel.year, patchLevel.month)
             val verificationDate = Date(
-                YearMonth.of(patchLevel.year, patchLevel.month + 1/*why do i need this?*/)
+                yearMonth
                     .atDay(1)
                     .atStartOfDay(ZoneOffset.UTC)
                     .toInstant().toEpochMilli()
             )
 
             "within default tolerance" {
-
 
                 val attestationProof = AttestationCreator.createAttestation(
                     challenge = challenge,
@@ -127,7 +127,7 @@ class FakeAttestationTests : FreeSpec({
                 )
             }
 
-            "back to the future" {
+            "intolerant towards the future" {
 
                 val attestationProof = AttestationCreator.createAttestation(
                     challenge = challenge,
@@ -135,7 +135,7 @@ class FakeAttestationTests : FreeSpec({
                     signatureDigest = signatureDigest,
                     appVersion = appVersion,
                     androidVersion = androidVersion,
-                    androidPatchLevel = patchLevel.asSingleInt + 1,
+                    androidPatchLevel = patchLevel.asSingleInt + 1, // advance one month
                     creationTime = verificationDate,
                 )
 
@@ -147,7 +147,7 @@ class FakeAttestationTests : FreeSpec({
                             appVersion = appVersion
                         ),
                         androidVersion = androidVersion,
-                        patchLevel = patchLevel,
+                        patchLevel = patchLevel, // HERE we use the default patch level that allows 1 month into the future
                         requireStrongBox = false,
                         allowBootloaderUnlock = false,
                         ignoreLeafValidity = false,
@@ -156,7 +156,6 @@ class FakeAttestationTests : FreeSpec({
                 ).verifyAttestation(
                     certificates = attestationProof,
                     expectedChallenge = challenge,
-
                     verificationDate = verificationDate
                 )
 
@@ -169,6 +168,7 @@ class FakeAttestationTests : FreeSpec({
                                 appVersion = appVersion
                             ),
                             androidVersion = androidVersion,
+                            //here we don't allow patch levels from the future
                             patchLevel = PatchLevel(patchLevel.year, patchLevel.month, maxFuturePatchLevelMonths = 0),
                             requireStrongBox = false,
                             allowBootloaderUnlock = false,
@@ -182,6 +182,41 @@ class FakeAttestationTests : FreeSpec({
                         verificationDate = verificationDate
                     )
                 }
+
+
+
+                //now we verify for the same month without tolerance. this should work
+                val attestationProofSameMonth = AttestationCreator.createAttestation(
+                    challenge = challenge,
+                    packageName = packageName,
+                    signatureDigest = signatureDigest,
+                    appVersion = appVersion,
+                    androidVersion = androidVersion,
+                    androidPatchLevel = patchLevel.asSingleInt,
+                    creationTime = verificationDate,
+                )
+
+                HardwareAttestationChecker(
+                    AndroidAttestationConfiguration(
+                        AndroidAttestationConfiguration.AppData(
+                            packageName = packageName,
+                            signatureDigests = listOf(signatureDigest),
+                            appVersion = appVersion
+                        ),
+                        androidVersion = androidVersion,
+                        //here we don't allow patch levels from the future
+                        patchLevel = PatchLevel(patchLevel.year, patchLevel.month, maxFuturePatchLevelMonths = 0),
+                        requireStrongBox = false,
+                        allowBootloaderUnlock = false,
+                        ignoreLeafValidity = false,
+                        hardwareAttestationTrustAnchors = setOf(attestationProofSameMonth.last().publicKey)
+                    )
+                ).verifyAttestation(
+                    certificates = attestationProofSameMonth,
+                    expectedChallenge = challenge,
+
+                    verificationDate = verificationDate
+                )
             }
 
             "ignore future patch levels" {

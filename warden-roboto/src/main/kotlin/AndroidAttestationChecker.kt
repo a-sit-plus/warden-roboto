@@ -276,14 +276,14 @@ abstract class AndroidAttestationChecker(
         versionOverride: Int? = null,
         osPatchLevel: PatchLevel?,
         verificationDate: Date
-    )
+    ): Unit?
 
     @Throws(AttestationValueException::class)
     protected fun AuthorizationList.verifyAndroidVersion(
         versionOverride: Int?,
         patchLevel: PatchLevel?,
         verificationDate: Date
-    ):Unit  = catchingUnwrapped {
+    ) = catchingUnwrapped {
         (versionOverride ?: attestationConfiguration.androidVersion)?.let {
             if ((osVersion().get()) < it) throw AttestationValueException(
                 "Android version not supported: ${osVersion().get()} (should be at least $it)",
@@ -308,7 +308,7 @@ abstract class AndroidAttestationChecker(
                 val calendar = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC)).apply { time = verificationDate }
                 val currentYearMonth = YearMonth.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1)
                 val difference = currentYearMonth.until(fromAttestation, ChronoUnit.MONTHS)
-                if (difference > maxFuturePatchLevelMonths!!.toLong()) throw AttestationValueException(
+                if (difference > maxFuturePatchLevelMonths.toLong()) throw AttestationValueException(
                     "Patch level is $difference months in the future. Maximum amount time travel allowed is: $maxFuturePatchLevelMonths months",
                     reason = AttestationValueException.Reason.OS_VERSION,
                     expectedValue = it,
@@ -316,7 +316,6 @@ abstract class AndroidAttestationChecker(
                 )
             }
         }
-        Unit
     }.getOrElse {
         throw when (it) {
             is AttestationValueException -> it

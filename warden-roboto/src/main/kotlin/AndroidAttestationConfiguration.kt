@@ -9,7 +9,9 @@ import kotlinx.serialization.Serializable
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
+import java.time.YearMonth
 import java.util.*
+import kotlin.math.absoluteValue
 
 /**
  * Represents a Patch level configuration property.
@@ -28,8 +30,27 @@ data class PatchLevel @JvmOverloads constructor(
     val month: Int,
     val maxFuturePatchLevelMonths: Int? = 1
 ) {
+
+    constructor(yearMonth: YearMonth, maxFuturePatchLevelMonths: Int? = 1) : this(
+        yearMonth.year,
+        yearMonth.month.value,
+        maxFuturePatchLevelMonths
+    )
+
     val asSingleInt: Int by lazy {
         ("%04d".format(year) + "%02d".format(month)).toInt()
+    }
+
+    val asYearMonth: YearMonth by lazy { YearMonth.of(year, month) }
+
+    companion object {
+
+        fun fromSingleInt(yearMothInt: Int, maxFuturePatchLevelMonths: Int? = 1): PatchLevel {
+            val year = yearMothInt / 100
+            val month = yearMothInt.absoluteValue % 100
+            require(month in 1..12) { "$yearMothInt outside valid range" }
+            return PatchLevel(year, month, maxFuturePatchLevelMonths)
+        }
     }
 }
 
