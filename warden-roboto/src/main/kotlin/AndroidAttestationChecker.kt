@@ -303,7 +303,7 @@ abstract class AndroidAttestationChecker(
         (patchLevel ?: attestationConfiguration.patchLevel)?.let {
             it.maxFuturePatchLevelMonths?.let { maxFuturePatchLevelMonths ->
                 val fromAttestation = osPatchLevel().get()
-                val calendar = Calendar.getInstance().apply { time = verificationDate }
+                val calendar = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC)).apply { time = verificationDate }
                 val currentYearMonth = YearMonth.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1)
                 val difference = currentYearMonth.until(fromAttestation, ChronoUnit.MONTHS)
                 if (difference > maxFuturePatchLevelMonths!!.toLong()) throw AttestationValueException(
