@@ -7,3 +7,6 @@
 [submodule "warden-roboto/src/android-key-attestation"]
 	path = warden-roboto/src/android-key-attestation
 	url = https://github.com/google/android-key-attestation.git
+[submodule "signum"]
+	path = signum
+	url = https://github.com/a-sit-plus/signum.git

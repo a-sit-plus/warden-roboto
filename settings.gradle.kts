@@ -13,3 +13,7 @@ pluginManagement {
 
 include("warden-roboto")
 include("attestation-diag")
+
+if (System.getProperty("publishing.excludeIncludedBuilds") != "true") {
+    includeBuild("signum")
+} else logger.lifecycle("Excluding Signum from this build")
