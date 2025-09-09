@@ -1,9 +1,9 @@
-[submodule "android-key-attestation"]
-	path = android-key-attestation
-	url = https://github.com/google/android-key-attestation.git
 [submodule "http-proxy"]
 	path = http-proxy
 	url = https://github.com/zk-123/http-proxy.git
 [submodule "keyattestation"]
 	path = keyattestation
-	url = git@github.com:android/keyattestation.git
+	url = https://github.com/android/keyattestation.git
+[submodule "warden-roboto/src/android-key-attestation"]
+	path = warden-roboto/src/android-key-attestation
+	url = https://github.com/google/android-key-attestation.git

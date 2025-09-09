@@ -20,20 +20,21 @@ plugins {
 
 sourceSets.main {
     java {
-        srcDirs("${project.rootDir}/android-key-attestation/src/main/java",
-            "${project.rootDir}/keyattestation/src/main/kotlin/")
-
+        srcDirs("${project.projectDir}/src/android-key-attestation/src/main/java")
 
         exclude(
             "com/android/example/",
             "com/google/android/attestation/CertificateRevocationStatus.java",
             "testing"
         )
-        File("${project.rootDir}/android-key-attestation/src/main/java/com/google/android/attestation/AuthorizationList.java").let {
+        File("${project.projectDir}/src//android-key-attestation/src/main/java/com/google/android/attestation/AuthorizationList.java").let {
             if (it.exists()) {
                it.delete()
             }
         }
+    }
+    kotlin {
+        srcDirs(            "${project.rootDir}/keyattestation/src/main/kotlin/")
     }
 }
 
@@ -48,7 +49,7 @@ sourceSets.test {
     }
     resources {
         srcDirs(
-            rootProject.layout.projectDirectory.dir("android-key-attestation").dir("src").dir("test")
+            project.layout.projectDirectory.dir("android-key-attestation").dir("src").dir("test")
                 .dir("resources"),
             "src/test/resources"
         )
