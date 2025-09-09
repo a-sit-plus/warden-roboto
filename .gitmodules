@@ -2,7 +2,7 @@
 	path = http-proxy
 	url = https://github.com/zk-123/http-proxy.git
 [submodule "keyattestation"]
-	path = keyattestation
+	path = warden-roboto/src/keyattestation
 	url = https://github.com/android/keyattestation.git
 [submodule "warden-roboto/src/android-key-attestation"]
 	path = warden-roboto/src/android-key-attestation

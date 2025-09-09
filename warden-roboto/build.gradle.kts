@@ -1,9 +1,7 @@
-import at.asitplus.gradle.AspVersions
 import at.asitplus.gradle.bouncycastle
 import at.asitplus.gradle.datetime
 import at.asitplus.gradle.ktor
 import org.gradle.kotlin.dsl.support.listFilesOrdered
-import org.jetbrains.kotlin.gradle.targets.js.testing.karma.processKarmaStackTrace
 
 group = "at.asitplus"
 val artifactVersion: String by extra
@@ -29,12 +27,12 @@ sourceSets.main {
         )
         File("${project.projectDir}/src//android-key-attestation/src/main/java/com/google/android/attestation/AuthorizationList.java").let {
             if (it.exists()) {
-               it.delete()
+                it.delete()
             }
         }
     }
     kotlin {
-        srcDirs(            "${project.rootDir}/keyattestation/src/main/kotlin/")
+        srcDirs("${project.projectDir}/src/keyattestation/src/main/kotlin/")
     }
 }
 
@@ -68,7 +66,7 @@ dependencies {
     implementation("com.google.auto.value:auto-value-annotations:1.11.0")
     annotationProcessor("com.google.auto.value:auto-value:1.11.0")
     api("com.google.protobuf:protobuf-javalite:4.29.3")
-    api("at.asitplus.signum:indispensable:3.17.0")  {
+    api("at.asitplus.signum:indispensable:3.17.0") {
         exclude("org.bouncycastle", "bcpkix-jdk18on")
     }
 
