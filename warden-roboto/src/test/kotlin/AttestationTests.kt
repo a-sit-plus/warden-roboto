@@ -1,5 +1,8 @@
 package at.asitplus.attestation.android
 
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyHardwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyNougatHybridAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacySoftwareAttestationEngine
 import at.asitplus.attestation.android.exceptions.AndroidAttestationException
 import at.asitplus.attestation.android.exceptions.AttestationValueException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
@@ -93,7 +96,7 @@ class AttestationTests : FreeSpec() {
                 val signatureDigests = listOf("NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray())
 
                 "should fail with HardwareAttestationChecker" {
-                    HardwareAttestationChecker(
+                    LegacyHardwareAttestationEngine(
                         AndroidAttestationConfiguration(
                             listOf(
                                 AndroidAttestationConfiguration.AppData(
@@ -123,7 +126,7 @@ class AttestationTests : FreeSpec() {
 
                 "should fail with NougatHybridAttestationChecker" {
 
-                    NougatHybridAttestationChecker(
+                    LegacyNougatHybridAttestationEngine(
                         AndroidAttestationConfiguration(
                             listOf(
                                 AndroidAttestationConfiguration.AppData(
@@ -152,7 +155,7 @@ class AttestationTests : FreeSpec() {
                 }
 
                 "should work with SoftwareAttestationChecker" {
-                    SoftwareAttestationChecker(
+                    LegacySoftwareAttestationEngine(
                         AndroidAttestationConfiguration(
                             listOf(
                                 AndroidAttestationConfiguration.AppData(
@@ -205,7 +208,7 @@ class AttestationTests : FreeSpec() {
             val packageName = "com.example.trustedapplication"
 
             "should fail with HardwareAttestationChecker" {
-                HardwareAttestationChecker(
+                LegacyHardwareAttestationEngine(
                     AndroidAttestationConfiguration(
                         listOf(
                             AndroidAttestationConfiguration.AppData(
@@ -234,7 +237,7 @@ class AttestationTests : FreeSpec() {
             }
 
             "should fail with SoftwareAttestationChecker" {
-                HardwareAttestationChecker(
+                LegacyHardwareAttestationEngine(
                     AndroidAttestationConfiguration(
                         listOf(
                             AndroidAttestationConfiguration.AppData(
@@ -263,7 +266,7 @@ class AttestationTests : FreeSpec() {
             }
 
             "should work with NougatHybridAttestationChecker" {
-                NougatHybridAttestationChecker(
+                LegacyNougatHybridAttestationEngine(
                     AndroidAttestationConfiguration(
                         listOf(
                             AndroidAttestationConfiguration.AppData(
@@ -495,7 +498,7 @@ class AttestationTests : FreeSpec() {
                     }
 
                     "Should fail with Nougat attestation" {
-                        NougatHybridAttestationChecker(
+                        LegacyNougatHybridAttestationEngine(
                             AndroidAttestationConfiguration(
                                 listOf(
                                     AndroidAttestationConfiguration.AppData(
@@ -528,7 +531,7 @@ class AttestationTests : FreeSpec() {
                     }
 
                     "Should fail with Software attestation" {
-                        SoftwareAttestationChecker(
+                        LegacySoftwareAttestationEngine(
                             AndroidAttestationConfiguration(
                                 listOf(
                                     AndroidAttestationConfiguration.AppData(
@@ -750,7 +753,7 @@ fun attestationService(
     unlockedBootloaderAllowed: Boolean = false,
     requireRollbackResistance: Boolean = false,
     attestationStatementValiditiy: Duration = 5.minutes
-) = HardwareAttestationChecker(
+) = LegacyHardwareAttestationEngine(
     AndroidAttestationConfiguration(
         listOf(
             AndroidAttestationConfiguration.AppData(
