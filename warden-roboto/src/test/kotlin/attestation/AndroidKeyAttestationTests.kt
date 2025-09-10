@@ -92,8 +92,9 @@ class AndroidKeyAttestationTests : FreeSpec({
         val pemPath: Path,
         val model: AttestationJson
     )
+    System.out.println(System.getProperty("user.dir"));
 
-    val root = Path.of("file:/./src/keyattestation/testdata")
+    val root = Paths.get("src", "keyattestation", "testdata")
     val jsonFiles = Files.walk(root)
         .filter { it.toString().endsWith(".json") }
         .toList()
