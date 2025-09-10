@@ -244,7 +244,7 @@ abstract class LegacyAttestationEngine(
 
 
         //do this before we check everything else to actually identify the app we're having here
-        val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates)
+        val parsedAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(certificates) // GOOGLE
         val attestedApp = attestationConfiguration.applications.associateWith { app ->
             catchingUnwrapped { parsedAttestationRecord.verifyApplication(app) }
         }.let {

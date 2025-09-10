@@ -89,12 +89,13 @@ class AttestationTests : FreeSpec() {
                         "ziM1aqafleV06CB1yABYe8SaSPpZKkPUK3HQPwsqZzjSHyZwUu6RSZRhiGsiYk2BwrhjWvLHRUmXbHP6HgIZtSOVhdrD" +
                         "Ux3S/B2JJ2IxGZ6YCTnTaj+ajg0+XurkoWQfcAKzlm62pnReCjPlljky6kIl/tD/0k9aHall6M2QqJ29wgaGhDtFWISj" +
                         "bwifUHXH1wt9pBKCRack0zFJQ6i8CsRmPgsI7SXW6OZzwz5Jzu1stjFXRzTgcmNBkBHjkigU5SNAancp6+LMFdMCAwEA" +
-                        "AQ=="
+                        "AQ==",
+                packageName = "at.asitplus.atttest",
+                expectedDigest = "NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray()
             ).apply {
 
-                val packageName = "at.asitplus.atttest"
-                val signatureDigests = listOf("NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray())
 
+                val signatureDigests = expectedDigests
                 "should fail with HardwareAttestationChecker" {
                     LegacyHardwareAttestationEngine(
                         AndroidAttestationConfiguration(
@@ -200,19 +201,19 @@ class AttestationTests : FreeSpec() {
                     "MIICeDCCAh6gAwIBAgICEAEwCgYIKoZIzj0EAwIwgZgxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1Nb3VudGFpbiBWaWV3MRUwEwYDVQQKDAxHb29nbGUsIEluYy4xEDAOBgNVBAsMB0FuZHJvaWQxMzAxBgNVBAMMKkFuZHJvaWQgS2V5c3RvcmUgU29mdHdhcmUgQXR0ZXN0YXRpb24gUm9vdDAeFw0xNjAxMTEwMDQ2MDlaFw0yNjAxMDgwMDQ2MDlaMIGIMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMR29vZ2xlLCBJbmMuMRAwDgYDVQQLDAdBbmRyb2lkMTswOQYDVQQDDDJBbmRyb2lkIEtleXN0b3JlIFNvZnR3YXJlIEF0dGVzdGF0aW9uIEludGVybWVkaWF0ZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABOueefhCY1msyyqRTImGzHCtkGaTgqlzJhP+rMv4ISdMIXSXSir+pblNf2bU4GUQZjW8U7ego6ZxWD7bPhGuEBSjZjBkMB0GA1UdDgQWBBQ//KzWGrE6noEguNUlHMVlux6RqTAfBgNVHSMEGDAWgBTIrel3TEXDo88NFhDkeUM6IVowzzASBgNVHRMBAf8ECDAGAQH/AgEAMA4GA1UdDwEB/wQEAwIChDAKBggqhkjOPQQDAgNIADBFAiBLipt77oK8wDOHri/AiZi03cONqycqRZ9pDMfDktQPjgIhAO7aAV229DLp1IQ7YkyUBO86fMy9Xvsiu+f+uXc/WT/7",
                     "MIICizCCAjKgAwIBAgIJAKIFntEOQ1tXMAoGCCqGSM49BAMCMIGYMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEVMBMGA1UECgwMR29vZ2xlLCBJbmMuMRAwDgYDVQQLDAdBbmRyb2lkMTMwMQYDVQQDDCpBbmRyb2lkIEtleXN0b3JlIFNvZnR3YXJlIEF0dGVzdGF0aW9uIFJvb3QwHhcNMTYwMTExMDA0MzUwWhcNMzYwMTA2MDA0MzUwWjCBmDELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcMDU1vdW50YWluIFZpZXcxFTATBgNVBAoMDEdvb2dsZSwgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDEzMDEGA1UEAwwqQW5kcm9pZCBLZXlzdG9yZSBTb2Z0d2FyZSBBdHRlc3RhdGlvbiBSb290MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7l1ex+HA220Dpn7mthvsTWpdamguD/9/SQ59dx9EIm29sa/6FsvHrcV30lacqrewLVQBXT5DKyqO107sSHVBpKNjMGEwHQYDVR0OBBYEFMit6XdMRcOjzw0WEOR5QzohWjDPMB8GA1UdIwQYMBaAFMit6XdMRcOjzw0WEOR5QzohWjDPMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgKEMAoGCCqGSM49BAMCA0cAMEQCIDUho++LNEYenNVg8x1YiSBq3KNlQfYNns6KGYxmSGB7AiBNC/NR2TB8fVvaNTQdqEcbY6WFZTytTySn502vQX3xvw=="
                 ),
-                isoDate = "2023-09-10T00:00:00Z"
+                isoDate = "2023-09-10T00:00:00Z",
+                expectedDigest = "88E5C393EAEF36829800B41DF786A52FF0A58215850CA8A65073859ADCF0190F".hexToByteArray(HexFormat.UpperCase),
+                packageName = "com.example.trustedapplication"
+
             )
-            val signatureDigests = listOf(
-                "88E5C393EAEF36829800B41DF786A52FF0A58215850CA8A65073859ADCF0190F".hexToByteArray(HexFormat.UpperCase)
-            )
-            val packageName = "com.example.trustedapplication"
+            val signatureDigests= data.expectedDigests
 
             "should fail with HardwareAttestationChecker" {
                 LegacyHardwareAttestationEngine(
                     AndroidAttestationConfiguration(
                         listOf(
                             AndroidAttestationConfiguration.AppData(
-                                packageName,
+                                data.packageName,
                                 signatureDigests,
                             )
                         ),
@@ -241,7 +242,7 @@ class AttestationTests : FreeSpec() {
                     AndroidAttestationConfiguration(
                         listOf(
                             AndroidAttestationConfiguration.AppData(
-                                packageName,
+                                data.packageName,
                                 signatureDigests,
                             )
                         ),
@@ -270,7 +271,7 @@ class AttestationTests : FreeSpec() {
                     AndroidAttestationConfiguration(
                         listOf(
                             AndroidAttestationConfiguration.AppData(
-                                packageName,
+                                data.packageName,
                                 signatureDigests,
                             )
                         ),
@@ -353,6 +354,8 @@ class AttestationTests : FreeSpec() {
                         """
                     ),
                     isoDate = "2023-04-14T13:12:42Z",
+                    packageName = ATT_CLIENT_PKG_NAME,
+                    expectedDigests = ATT_CLIENT_DIGESTS,
                     pubKeyB64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEL3PdP8200NNz3h4p0bcwrPikiD5+s/qPXN/eHikTd8RnQiutcz4tqAq4NXgcmjLiEcNIOtkPTKi45ETDEoqPpA=="
                 ),
                 AttestationData(
@@ -426,6 +429,8 @@ class AttestationTests : FreeSpec() {
                         ex0SdDrx+tWUDqG8At2JHA==
                         """
                     ),
+                    packageName = ATT_CLIENT_PKG_NAME,
+                    expectedDigests = ATT_CLIENT_DIGESTS,
                     isoDate = "2023-04-14T14:31:42Z",
                     pubKeyB64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqs5NcBOKN40tu/5+NLFvGRMRcYF6KRksYoUmiwlKhhzbGaALzE2PerEM5wzNKeC6ESruZJRoBPuHn5D+HfoMkA=="
                 ),
@@ -735,7 +740,7 @@ class AttestationTests : FreeSpec() {
     }
 }
 
-private const val ATT_CLIENT_PKG_NAME = "at.asitplus.attestation_client"
+const val ATT_CLIENT_PKG_NAME = "at.asitplus.attestation_client"
 
 val ATT_CLIENT_DIGESTS = listOf(
     "NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=".decodeBase64ToArray(),
