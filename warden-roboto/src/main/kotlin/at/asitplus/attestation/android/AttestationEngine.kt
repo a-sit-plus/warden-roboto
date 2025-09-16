@@ -1,9 +1,5 @@
 package at.asitplus.attestation.android
 
-import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyAttestationEngine
-import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyHardwareAttestationEngine
-import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyNougatHybridAttestationEngine
-import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacySoftwareAttestationEngine
 import at.asitplus.attestation.android.exceptions.AttestationValueException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
 import at.asitplus.attestation.android.exceptions.RevocationException
