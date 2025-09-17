@@ -21,6 +21,7 @@ import at.asitplus.signum.indispensable.pki.attestation.AttestationValue
 import at.asitplus.signum.indispensable.pki.attestation.AuthorizationList.Digest
 import at.asitplus.signum.indispensable.pki.attestation.androidAttestationExtension
 import com.google.android.attestation.AuthorizationList
+import com.google.android.attestation.ParsedAttestationRecord
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.datatest.withData
@@ -92,7 +93,7 @@ class BasicParsingTests : FreeSpec({
                     ZDAdBgNVHQ4EFgQU1AwQG/jNY7n3OVK1DhNcpteZk4YwHwYDVR0jBBgwFoAUKfrxrMxN0kyWQCd1trDpMuUH/i4wEgYDVR0TAQH/
                     BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAoQwDQYJKoZIhvcNAQELBQADgYEAni1IX4xnM9waha2Z11Aj6hTsQ7DhnerCI0YecrUZ
                     3GAi5KVoMWwLVcTmnKItnzpPk2sxixZ4Fg2Iy9mLzICdhPDCJ+NrOPH90ecXcjFZNX2W88V/q52PlmEmT7K+gbsNSQQiis6f9/VC
-                    LiVE+iEHElqDtVWtGIL4QBSbnCBjBH8=  
+                    LiVE+iEHElqDtVWtGIL4QBSbnCBjBH8=
                     """,
                     """
                     MIICpzCCAhCgAwIBAgIJAP+U2d2fB8gMMA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlh
@@ -104,7 +105,7 @@ class BasicParsingTests : FreeSpec({
                     KfrxrMxN0kyWQCd1trDpMuUH/i4wHwYDVR0jBBgwFoAUKfrxrMxN0kyWQCd1trDpMuUH/i4wDwYDVR0TAQH/BAUwAwEB/zAOBgNV
                     HQ8BAf8EBAMCAoQwDQYJKoZIhvcNAQELBQADgYEAT3LzNlmNDsG5dFsxWfbwjSVJMJ6jHBwp0kUtILlNX2S06IDHeHqcOd6os/W/
                     L3BfRxBcxebrTQaZYdKumgf/93y4q+ucDyQHXrF/unlx/U1bnt8Uqf7f7XzAiF343ZtkMlbVNZriE/mPzsF83O+kqrJVw4OpLvtc
-                    9mL1J1IXvmM=    
+                    9mL1J1IXvmM=
                     """
                 ),
                 isoDate = "2023-09-06T17:19:09Z",
@@ -278,99 +279,6 @@ class BasicParsingTests : FreeSpec({
                 pubKeyB64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqs5NcBOKN40tu/5+NLFvGRMRcYF6KRksYoUmiwlKhhzbGaALzE2PerEM5wzNKeC6ESruZJRoBPuHn5D+HfoMkA==",
                 packageName = "at.asitplus.attestation_client",
                 expectedDigest = Base64.decode("NLl2LE1skNSEMZQMV73nMUJYsmQg7+Fqx/cnTw0zCtU=")
-            ),
-            AttestationData(
-                "SB_RSA_NONE", // source: https://github.com/android/keyattestation/blob/main/testdata/akita/sdk34/
-                challengeB64 = "Y2hhbGxlbmdl",
-                attestationProofB64 = listOf(
-                    """
-                        MIIDiDCCAy6gAwIBAgIBATAKBggqhkjOPQQDAjA/MSkwJwYDVQQDEyA0NGMxNTc2
-                        NTVmMThjM2U0OTBlMjdhN2E1ODNiOTZkMjESMBAGA1UEChMJU3Ryb25nQm94MB4X
-                        DTcwMDEwMTAwMDAwMFoXDTQ4MDEwMTAwMDAwMFowHzEdMBsGA1UEAxMUQW5kcm9p
-                        ZCBLZXlzdG9yZSBLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCf
-                        he4/BGT5JtwINaC7LXJh0fsHHQb/ub/PprziFMoVW/mOkFzkZOJQAKWEXzRb3ASF
-                        VVNwYfPhOgT/Ww/TljjvlVJRltGlRhngTq15FXUfWeqNb7bRxqq+Qi/bl2bhbOpO
-                        nVPMRvJZkUEo1+iUChxFWkvx0xQ82rHBVM/bb3kqdAFUjCzV0aJ+Fbei+FZhmXOv
-                        1rEizgOUtAvaDbRs5faGV/dS8K41Ph43rriwf7R8g+GTO0tLhpNMoI6N81MFnirc
-                        XWSVUeR49x9OcGkukTyT8eZgb/fmhewOafHducxz7S394Bq0Z32CKY9MvvcGCYxQ
-                        3Y2WOexhdOd6w9OYE+XFAgMBAAGjggFuMIIBajAOBgNVHQ8BAf8EBAMCB4AwggFW
-                        BgorBgEEAdZ5AgERBIIBRjCCAUICAgEsCgECAgIBLAoBAgQJY2hhbGxlbmdlBAAw
-                        gYO/hT0IAgYBkjB17Je/hUVzBHEwbzFJMEcEQmNvbS5nb29nbGUud2lyZWxlc3Mu
-                        YW5kcm9pZC5zZWN1cml0eS5hdHRlc3RhdGlvbnZlcmlmaWVyLmNvbGxlY3RvcgIB
-                        ADEiBCAQOTjuRTflno7nkvZUUE+4NG/Gs0bQu8RBX8M5/PyOwTCBnqEFMQMCAQKi
-                        AwIBAaMEAgIIAL+BSAUCAwEAAb+DdwIFAL+FPgMCAQC/hUBMMEoEIAAAAAAAAAAA
-                        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEACgECBCCIJYhXZHWuzLOSmC/i+8X2
-                        LGnJ/IS6c+bFPMBSoRYVhr+FQQUCAwIi4L+FQgUCAwMWqL+FTgYCBAE02aW/hU8G
-                        AgQBNNmlMAoGCCqGSM49BAMCA0gAMEUCIQCw4Fw+8uBTtJzJ9Ink8uZ5y0iqXaZc
-                        w1djbDyziGebUwIgVj2YQuuPf6WIsuOHBKdgaRD86c+/7rFpTzoXrGRVIxY=
-                        """,
-                    """
-                        MIIB3TCCAYKgAwIBAgIQRMFXZV8Yw+SQ4np6WDuW0jAKBggqhkjOPQQDAjApMRMw
-                        EQYDVQQKEwpHb29nbGUgTExDMRIwEAYDVQQDEwlEcm9pZCBDQTMwHhcNMjQwOTEw
-                        MTM1NjQ2WhcNMjQxMDA5MTkwMDI4WjA/MSkwJwYDVQQDEyA0NGMxNTc2NTVmMThj
-                        M2U0OTBlMjdhN2E1ODNiOTZkMjESMBAGA1UEChMJU3Ryb25nQm94MFkwEwYHKoZI
-                        zj0CAQYIKoZIzj0DAQcDQgAE/qWdV9CR+sepin+s2yIAnqCmsxDncNSJ2RTOaVq5
-                        ErKcL2LaTui5iIRwGNUDExq2qqxZMr6s+3RdoJGb1NEn9aN2MHQwHQYDVR0OBBYE
-                        FLsYEAYD5TzleXyyFrWATtR7ddPpMB8GA1UdIwQYMBaAFKR4x7qc4afjWZX4lkTs
-                        H3H5u6afMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgIEMBEGCisGAQQB
-                        1nkCAR4EA6EBCDAKBggqhkjOPQQDAgNJADBGAiEAsBAH68f5noSezed8m/XtvM9b
-                        CbsTO68GRxaGlARPusACIQCrHyMwFrPUebmABFSGNKt6vcqrYrK9ojoATKuoEJYC
-                        Ig==
-                        """,
-                    """
-                        MIIB1jCCAVygAwIBAgITbo7Qb13I1RLtNOgRzOhcrktMQjAKBggqhkjOPQQDAzAp
-                        MRMwEQYDVQQKEwpHb29nbGUgTExDMRIwEAYDVQQDEwlEcm9pZCBDQTIwHhcNMjQw
-                        OTEyMTMwNTU5WhcNMjQxMTIxMTMwNTU4WjApMRMwEQYDVQQKEwpHb29nbGUgTExD
-                        MRIwEAYDVQQDEwlEcm9pZCBDQTMwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASe
-                        brQJ/XUS44h+yrc2NixQDZ/rI7SnJSk/6o++vPEhSHb9g1P1d507aUkinlHxSUqq
-                        RjdyG58oWLgJpWgfB2TUo2MwYTAOBgNVHQ8BAf8EBAMCAgQwDwYDVR0TAQH/BAUw
-                        AwEB/zAdBgNVHQ4EFgQUpHjHupzhp+NZlfiWROwfcfm7pp8wHwYDVR0jBBgwFoAU
-                        u/g2rYmubOLlnpTw1bLX0nrkfEEwCgYIKoZIzj0EAwMDaAAwZQIwCeuTkh9V37F0
-                        KEGMyco7Zonio/+GVi9lKJxYRqyir1K7bxsDP/9LAu3Zf/9yImLlAjEAssjEIw8F
-                        zPCWxtEag537mwNnq7JoJwIch5g5aq72bbwDT5fetdAwxY8Lp/5rXIOC
-                        """,
-                    """
-                        MIIDgDCCAWigAwIBAgIKA4gmZ2BliZaGDTANBgkqhkiG9w0BAQsFADAbMRkwFwYDVQQFExBmOTIwMDllODUzYjZiMDQ1MB4X
-                        DTIyMDEyNjIyNDc1MloXDTM3MDEyMjIyNDc1MlowKTETMBEGA1UEChMKR29vZ2xlIExMQzESMBAGA1UEAxMJRHJvaWQgQ0Ey
-                        MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEuppxbZvJgwNXXe6qQKidXqUt1ooT8M6Q+ysWIwpduM2EalST8v/Cy2JN10aqTfUS
-                        ThJha/oCtG+F9TUUviOch6RahrpjVyBdhopM9MFDlCfkiCkPCPGu2ODMj7O/bKnko2YwZDAdBgNVHQ4EFgQUu/g2rYmubOLl
-                        npTw1bLX0nrkfEEwHwYDVR0jBBgwFoAUNmHhAHyIBQlRi0RsR/8aTMnqTxIwEgYDVR0TAQH/BAgwBgEB/wIBAjAOBgNVHQ8B
-                        Af8EBAMCAQYwDQYJKoZIhvcNAQELBQADggIBAIFxUiFHYfObqrJM0eeXI+kZFT57wBplhq+TEjd+78nIWbKvKGUFlvt7IuXH
-                        zZ7YJdtSDs7lFtCsxXdrWEmLckxRDCRcth3Eb1leFespS35NAOd0Hekg8vy2G31OWAe567l6NdLjqytukcF4KAzHIRxoFivN
-                        +tlkEJmg7EQw9D2wPq4KpBtug4oJE53R9bLCT5wSVj63hlzEY3hC0NoSAtp0kdthow86UFVzLqxEjR2B1MPCMlyIfoGyBgky
-                        AWhd2gWN6pVeQ8RZoO5gfPmQuCsn8m9kv/dclFMWLaOawgS4kyAn9iRi2yYjEAI0VVi7u3XDgBVnowtYAn4gma5q4BdXgbWb
-                        UTaMVVVZsepXKUpDpKzEfss6Iw0zx2Gql75zRDsgyuDyNUDzutvDMw8mgJmFkWjlkqkVM2diDZydzmgi8br2sJTLdG4lUwve
-                        dIaLgjnIDEG1J8/5xcPVQJFgRf3m5XEZB4hjG3We/49p+JRVQSpE1+QzG0raYpdNsxBUO+41diQo7qC7S8w2J+TMeGdpKGjC
-                        IzKjUDAy2+gOmZdZacanFN/03SydbKVHV0b/NYRWMa4VaZbomKON38IH2ep8pdj++nmSIXeWpQE8LnMEdnUFjvDzp0f0ELSX
-                        VW2+5xbl+fcqWgmOupmU4+bxNJLtknLo49Bg5w9jNn7T7rkF
-                        """,
-                    """
-                        MIIFHDCCAwSgAwIBAgIJANUP8luj8tazMA0GCSqGSIb3DQEBCwUAMBsxGTAXBgNVBAUTEGY5MjAwOWU4NTNiNmIwNDUwHhcN
-                        MTkxMTIyMjAzNzU4WhcNMzQxMTE4MjAzNzU4WjAbMRkwFwYDVQQFExBmOTIwMDllODUzYjZiMDQ1MIICIjANBgkqhkiG9w0B
-                        AQEFAAOCAg8AMIICCgKCAgEAr7bHgiuxpwHsK7Qui8xUFmOr75gvMsd/dTEDDJdSSxtf6An7xyqpRR90PL2abxM1dEqlXnf2
-                        tqw1Ne4Xwl5jlRfdnJLmN0pTy/4lj4/7tv0Sk3iiKkypnEUtR6WfMgH0QZfKHM1+di+y9TFRtv6y//0rb+T+W8a9nsNL/ggj
-                        nar86461qO0rOs2cXjp3kOG1FEJ5MVmFmBGtnrKpa73XpXyTqRxB/M0n1n/W9nGqC4FSYa04T6N5RIZGBN2z2MT5IKGbFlbC
-                        8UrW0DxW7AYImQQcHtGl/m00QLVWutHQoVJYnFPlXTcHYvASLu+RhhsbDmxMgJJ0mcDpvsC4PjvB+TxywElgS70vE0XmLD+O
-                        JtvsBslHZvPBKCOdT0MS+tgSOIfga+z1Z1g7+DVagf7quvmag8jfPioyKvxnK/EgsTUVi2ghzq8wm27ud/mIM7AY2qEORR8G
-                        o3TVB4HzWQgpZrt3i5MIlCaY504LzSRiigHCzAPlHws+W0rB5N+er5/2pJKnfBSDiCiFAVtCLOZ7gLiMm0jhO2B6tUXHI/+M
-                        RPjy02i59lINMRRev56GKtcd9qO/0kUJWdZTdA2XoS82ixPvZtXQpUpuL12ab+9EaDK8Z4RHJYYfCT3Q5vNAXaiWQ+8PTWm2
-                        QgBR/bkwSWc+NpUFgNPN9PvQi8WEg5UmAGMCAwEAAaNjMGEwHQYDVR0OBBYEFDZh4QB8iAUJUYtEbEf/GkzJ6k8SMB8GA1Ud
-                        IwQYMBaAFDZh4QB8iAUJUYtEbEf/GkzJ6k8SMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgIEMA0GCSqGSIb3DQEB
-                        CwUAA4ICAQBOMaBc8oumXb2voc7XCWnuXKhBBK3e2KMGz39t7lA3XXRe2ZLLAkLM5y3J7tURkf5a1SutfdOyXAmeE6SRo83U
-                        h6WszodmMkxK5GM4JGrnt4pBisu5igXEydaW7qq2CdC6DOGjG+mEkN8/TA6p3cnoL/sPyz6evdjLlSeJ8rFBH6xWyIZCbrcp
-                        YEJzXaUOEaxxXxgYz5/cTiVKN2M1G2okQBUIYSY6bjEL4aUN5cfo7ogP3UvliEo3Eo0YgwuzR2v0KR6C1cZqZJSTnghIC/vA
-                        D32KdNQ+c3N+vl2OTsUVMC1GiWkngNx1OO1+kXW+YTnnTUOtOIswUP/Vqd5SYgAImMAfY8U9/iIgkQj6T2W6FsScy94IN9fF
-                        hE1UtzmLoBIuUFsVXJMTz+Jucth+IqoWFua9v1R93/k98p41pjtFX+H8DslVgfP097vju4KDlqN64xV1grw3ZLl4CiOe/A91
-                        oeLm2UHOq6wn3esB4r2EIQKb6jTVGu5sYCcdWpXr0AUVqcABPdgL+H7qJguBw09ojm6xNIrw2OocrDKsudk/okr/AwqEyPKw
-                        9WnMlQgLIKw1rODG2NvU9oR3GVGdMkUBZutL8VuFkERQGt6vQ2OCw0sV47VMkuYbacK/xyZFiRcrPJPb41zgbQj9XAEyLKCH
-                        ex0SdDrx+tWUDqG8At2JHA==
-                        """
-                ),
-                isoDate = "2024-09-26T22:31:27.639Z", // TODO ? creationDateTime 1727389887639 , decode via chatgpt
-                pubKeyB64 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn4XuPwRk+SbcCDWguy1yYdH7Bx0G/7m/z6a84hTKFVv5jpBc5GTiUAClhF80W9wEhVVTcGHz4ToE/1sP05Y475VSUZbRpUYZ4E6teRV1H1nqjW+20caqvkIv25dm4WzqTp1TzEbyWZFBKNfolAocRVpL8dMUPNqxwVTP2295KnQBVIws1dGifhW3ovhWYZlzr9axIs4DlLQL2g20bOX2hlf3UvCuNT4eN664sH+0fIPhkztLS4aTTKCOjfNTBZ4q3F1klVHkePcfTnBpLpE8k/HmYG/35oXsDmnx3bnMc+0t/eAatGd9gimPTL73BgmMUN2NljnsYXTnesPTmBPlxQIDAQAB",
-                packageName = "com.google.wireless.android.security.attestationverifier.collector",
-                expectedDigest = Base64.decode("EDk47kU35Z6O55L2VFBPuDRvxrNG0LvEQV/DOfz8jsE="),
-                attestationLevel = Level.HARDWARE,
             )
         ) {
             it.attestationCertChain.forEach { cert ->
@@ -378,7 +286,6 @@ class BasicParsingTests : FreeSpec({
                 val certParsed = X509Certificate.decodeFromDer(bytes)
                 certParsed.encodeToDer() shouldBe bytes
             }
-
 
             // decode and check first certificate
             val bytes = it.attestationCertChain.first().encoded
@@ -388,7 +295,7 @@ class BasicParsingTests : FreeSpec({
 
             val attestation = certParsed.androidAttestationExtension.shouldNotBeNull()
             val appId = attestation.softwareEnforced.attestationApplicationId.shouldNotBeNull().shouldBeSuccess()
-            val info = appId?.packageInfos
+            val info = appId.packageInfos
             info.shouldNotBeNull()
             info.shouldNotBeEmpty()
             info.first().packageName shouldBe it.packageName
@@ -400,27 +307,15 @@ class BasicParsingTests : FreeSpec({
             //this means that every field that has been parsed is correctly re-encoded into the same generic structure found in the certificate extension
             attestation.encodeToTlv() shouldBe certParsed.tbsCertificate.extensions!!.first { it.oid == AttestationKeyDescription.Companion.oid }.value.asEncapsulatingOctetString().children.first()
 
-            //we get the result, so that there's a parsed attestation record in there
-            //we don't care for strict attestation checks, only for parsing
-            //shouldThrow<AttestationValueException> {
-            val result = attestationService(
-                it.attestationLevel,
-                it.packageName, it.expectedDigests
-            )
+            val legacyAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(it.attestationCertChain) // GOOGLE
 
-            if(it.name == "SB_RSA_NONE") {
-                shouldThrow<AttestationValueException> {
-                    result.verifyAttestation(it.attestationCertChain, it.verificationDate, it.challenge)
-                }.message shouldBe "Bootloader not locked"
-            }
-            else
-            {
-                result.verifyAttestation(it.attestationCertChain, it.verificationDate, it.challenge)
-            }
+            legacyAttestationRecord.teeEnforced().compareWith(attestation.hardwareEnforced)
+            legacyAttestationRecord.softwareEnforced().compareWith(attestation.softwareEnforced)
         }
     }
 })
 
+// TODO TODO code checken!
 fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pki.attestation.AuthorizationList) {
 
     // Purpose comparison
@@ -432,12 +327,12 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
 
     // Algorithm comparison
     this.algorithm().getOrNull()
-        ?.let { it.ordinal shouldBe sAuthList.algorithm!!.shouldBeSuccess().ordinal }
+        ?.let { it.ordinal shouldBe sAuthList.algorithm.shouldNotBeNull().shouldBeSuccess().ordinal }
         ?: sAuthList.algorithm.shouldBeNull()
 
     // KeySize comparison
     this.keySize().getOrNull()
-        ?.let { it shouldBe sAuthList.keySize!!.shouldBeSuccess().intValue.toBigInteger().intValue(true) }
+        ?.let { it shouldBe sAuthList.keySize.shouldNotBeNull().shouldBeSuccess().intValue.toBigInteger().intValue(true) }
         ?: sAuthList.keySize.shouldBeNull()
 
     // Digest comparison
@@ -461,17 +356,15 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
 
     // RSA Public Exponent comparison
     this.rsaPublicExponent().getOrNull()
-        ?.let { it shouldBe sAuthList.rsaPublicExponent!!.shouldBeSuccess().intValue.toBigInteger().longValue(true) }
+        ?.let { it shouldBe sAuthList.rsaPublicExponent.shouldNotBeNull().shouldBeSuccess().intValue.toBigInteger().longValue(true) }
         ?: sAuthList.rsaPublicExponent.shouldBeNull()
 
     // MGF Digest comparison
     // TODO: not implemented in https://github.com/google/android-key-attestation/blob/master/src/main/java/com/google/android/attestation/AuthorizationList.java
 
     // RollbackResistance comparison
-    if (this.rollbackResistance())
-        sAuthList.rollbackResistance.shouldNotBeNull()
-    else
-        sAuthList.rollbackResistance.shouldBeNull()
+    if (this.rollbackResistance()) sAuthList.rollbackResistance.shouldNotBeNull().shouldBeSuccess()
+    else sAuthList.rollbackResistance.shouldBeNull()
 
     // EarlyBootOnly comparison
     // TODO: not implemented in https://github.com/google/android-key-attestation/blob/master/src/main/java/com/google/android/attestation/AuthorizationList.java
@@ -479,24 +372,24 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
     // activeDateTime
     this.activeDateTime().getOrNull()
         ?.let {
-            it.toEpochMilli() shouldBe sAuthList.activeDateTime!!.shouldBeSuccess().intValue.toBigInteger()
-                .longValue(true)
+            it.toEpochMilli() shouldBe sAuthList.activeDateTime.shouldNotBeNull().shouldBeSuccess()
+                .intValue.toBigInteger().longValue(true)
         }
         ?: sAuthList.activeDateTime.shouldBeNull()
 
     // OriginationExpireDateTime comparison
     this.originationExpireDateTime().getOrNull()
         ?.let {
-            it.toEpochMilli() shouldBe sAuthList.originationExpireDateTime!!.shouldBeSuccess().intValue.toBigInteger()
-                .longValue(true)
+            it.toEpochMilli() shouldBe sAuthList.originationExpireDateTime.shouldNotBeNull().shouldBeSuccess()
+                .intValue.toBigInteger().longValue(true)
         }
         ?: sAuthList.originationExpireDateTime.shouldBeNull()
 
     // UsageExpireDateTime comparison
     this.usageExpireDateTime().getOrNull()
         ?.let {
-            it.toEpochMilli() shouldBe sAuthList.usageExpireDateTime!!.shouldBeSuccess().intValue.toBigInteger()
-                .longValue(true)
+            it.toEpochMilli() shouldBe sAuthList.usageExpireDateTime.shouldNotBeNull().shouldBeSuccess()
+                .intValue.toBigInteger().longValue(true)
         }
         ?: sAuthList.usageExpireDateTime.shouldBeNull()
 
@@ -504,10 +397,8 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
     // TODO: not implemented in https://github.com/google/android-key-attestation/blob/master/src/main/java/com/google/android/attestation/AuthorizationList.java
 
     // NoAuthRequired comparison
-    if (this.noAuthRequired())
-        sAuthList.noAuthRequired.shouldNotBeNull()
-    else
-        sAuthList.noAuthRequired.shouldBeNull()
+    if (this.noAuthRequired()) sAuthList.noAuthRequired.shouldNotBeNull().shouldBeSuccess()
+    else sAuthList.noAuthRequired.shouldBeNull()
 
     // UserAuthType comparison
     // TODO: implemented as list of enums TODO TODO
@@ -525,31 +416,34 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
         ?: sAuthList.authTimeout.shouldBeNull()
 
     // allowWhileOnBody comparison
-    if (this.allowWhileOnBody()) sAuthList.allowWhileOnBody.shouldNotBeNull()
+    if (this.allowWhileOnBody()) sAuthList.allowWhileOnBody.shouldNotBeNull().shouldBeSuccess()
     else sAuthList.allowWhileOnBody.shouldBeNull()
 
     // TrustedUserPresenceRequired comparison
-    if (this.trustedUserPresenceRequired()) sAuthList.trustedUserPresenceRequired.shouldNotBeNull()
+    if (this.trustedUserPresenceRequired()) sAuthList.trustedUserPresenceRequired.shouldNotBeNull().shouldBeSuccess()
     else sAuthList.trustedUserPresenceRequired.shouldBeNull()
 
     // TrustedConfirmationRequired comparison
-    if (this.trustedConfirmationRequired()) sAuthList.trustedConfirmationRequired.shouldNotBeNull()
+    if (this.trustedConfirmationRequired()) sAuthList.trustedConfirmationRequired.shouldNotBeNull().shouldBeSuccess()
     else sAuthList.trustedConfirmationRequired.shouldBeNull()
 
     // UnlockedDeviceRequired comparison
-    if (this.unlockedDeviceRequired()) sAuthList.unlockedDeviceRequired.shouldNotBeNull()
+    if (this.unlockedDeviceRequired()) sAuthList.unlockedDeviceRequired.shouldNotBeNull().shouldBeSuccess()
     else sAuthList.unlockedDeviceRequired.shouldBeNull()
 
     // CreationDateTime comparison
     this.creationDateTime().getOrNull()
         ?.let {
-            it.toEpochMilli() shouldBe sAuthList.creationDateTime!!.shouldBeSuccess().intValue.toBigInteger()
-                .longValue(true)
+            it.toEpochMilli() shouldBe sAuthList.creationDateTime.shouldNotBeNull().shouldBeSuccess()
+                .intValue.toBigInteger().longValue(true)
         }
         ?: sAuthList.creationDateTime.shouldBeNull()
 
     // Origin comparison old
-    this.origin().getOrNull()?.let { it.ordinal shouldBe sAuthList.origin?.shouldBeSuccess()?.ordinal }
+    this.origin().getOrNull()
+        ?.let {
+            it.ordinal shouldBe sAuthList.origin.shouldNotBeNull().shouldBeSuccess().ordinal
+        }
         ?: sAuthList.origin.shouldBeNull()
 
     // RootOfTrust comparison
@@ -561,7 +455,6 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
             gRoot.verifiedBootState().ordinal shouldBe sRoot.verifiedBootState.ordinal
             gRoot.verifiedBootHash().getOrNull()?.toByteArray()?.contentEquals(sRoot.verifiedBootHash)
         }
-
         ?: sAuthList.rootOfTrust.shouldBeNull()
 
     // OsVersion comparison
@@ -596,42 +489,42 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
 
     // attestationIdBrand comparison
     this.attestationIdBrand().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdBrand!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdBrand.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdBrand.shouldBeNull()
 
     // attestationIdDevice comparison
     this.attestationIdDevice().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdDevice!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdDevice.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdDevice.shouldBeNull()
 
     // attestationIdProduct comparison
     this.attestationIdProduct().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdProduct!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdProduct.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdProduct.shouldBeNull()
 
     // attestationIdSerial comparison
     this.attestationIdSerial().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdSerial!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdSerial.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdSerial.shouldBeNull()
 
     // attestationIdImei comparison
     this.attestationIdImei().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdImei!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdImei.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdImei.shouldBeNull()
 
     // attestationIdMeid comparison
     this.attestationIdMeid().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdMeid!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdMeid.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdMeid.shouldBeNull()
 
     // attestationIdManufacturer comparison
     this.attestationIdManufacturer().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdManufacturer!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdManufacturer.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdManufacturer.shouldBeNull()
 
     // attestationIdModel comparison
     this.attestationIdModel().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdModel!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdModel.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdModel.shouldBeNull()
 
     // VendorPatchLevel comparison
@@ -661,10 +554,12 @@ fun AuthorizationList.compareWith(sAuthList: at.asitplus.signum.indispensable.pk
     // TODO: deviceUnique
 
     this.attestationIdSecondImei().getOrNull()?.toByteArray()
-        ?.contentEquals(sAuthList.attestationIdSecondImei!!.shouldBeSuccess().stringValue.toByteArray())
+        ?.contentEquals(sAuthList.attestationIdSecondImei.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdSecondImei.shouldBeNull()
 
     // TODO: module hash
+
+    // TODO: AuthorizationList.java also contains "individualAttestation" (boolean) - how to handle this??
 }
 
 
