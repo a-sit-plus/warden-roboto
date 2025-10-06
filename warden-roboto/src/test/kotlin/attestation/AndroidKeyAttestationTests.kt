@@ -2,9 +2,22 @@
 
 package at.asitplus.attestation.android.attestation
 
+import at.asitplus.attestation.android.AndroidAttestationConfiguration
+import at.asitplus.attestation.android.AndroidAttestationConfiguration.AppData
+import at.asitplus.attestation.android.AttestationEngine
+import at.asitplus.attestation.android.PatchLevel
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyHardwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyNougatHybridAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacySoftwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumHardwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumNougatHybridAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumSoftwareAttestationEngine
 import at.asitplus.attestation.android.exceptions.AttestationValueException
 import at.asitplus.attestation.data.AttestationData
+import at.asitplus.attestation.data.AttestationData.Level
 import at.asitplus.signum.indispensable.toJcaCertificateBlocking
+import com.google.android.attestation.AuthorizationList
+import com.google.android.attestation.ParsedAttestationRecord
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.datatest.withData
@@ -23,6 +36,7 @@ import java.time.Instant
 import java.util.*
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import at.asitplus.signum.indispensable.pki.X509Certificate as SigNumX509
 
 
@@ -155,18 +169,25 @@ class AndroidKeyAttestationTests : FreeSpec({
 
             println("${c.name}: verifiedBootState=$verifiedBootState level=${level} iso=$iso")
 
-            // 5) build checker (wie in BasicParsingTests.kt)
-            val service = attestationService(
+            // 5) build checker
+            val legacyChecker = legacyAttestationService(
                 attestationLevel = mapSecurityLevel(level, aLevel),
                 androidPackageName = pkgName,
                 androidAppSignatureDigest = listOf(expectedDigest),
                 // optional: requireStrongBox = (c.model.attestationSecurityLevel?.uppercase() == "STRONG_BOX"),
-                attestationStatementValiditiy = Duration.parse("5m")
+                attestationStatementValidity = Duration.parse("5m")
+            )
+            val signumChecker = signumAttestationService(
+                attestationLevel = mapSecurityLevel(level, aLevel),
+                androidPackageName = pkgName,
+                androidAppSignatureDigest = listOf(expectedDigest),
+                // optional: requireStrongBox = (c.model.attestationSecurityLevel?.uppercase() == "STRONG_BOX"),
+                attestationStatementValidity = Duration.parse("5m")
             )
 
             if (verifiedBootState == "UNVERIFIED") {
                 val ex = shouldThrow<AttestationValueException> {
-                    service.verifyAttestation(chain, verificationDate, challenge)
+                    legacyChecker.verifyAttestation(chain, verificationDate, challenge)
                 }
                 if (ex.message == "Bootloader not locked") {
                     deviceLocked shouldBe false
@@ -174,8 +195,136 @@ class AndroidKeyAttestationTests : FreeSpec({
                     throw TestAbortedException("UNVERIFIED : unknown case")
                 }
             } else {
-                service.verifyAttestation(chain, verificationDate, challenge)
+                legacyChecker.verifyAttestation(chain, verificationDate, challenge)
             }
         }
     }
 })
+
+// TODO: move somewhere else? not used here!
+// TODO checkout AndroidAttestationConfiguration.legacyEngineForLevel
+fun legacyAttestationService(
+    attestationLevel: Level,
+    androidPackageName: String,
+    androidAppSignatureDigest: List<ByteArray>,
+    androidVersion: Int? = null,
+    androidAppVersion: Int? = null,
+    androidPatchLevel: PatchLevel? = null,
+    requireStrongBox: Boolean = false,
+    unlockedBootloaderAllowed: Boolean = false,
+    requireRollbackResistance: Boolean = false,
+    attestationStatementValidity: Duration = 5.minutes
+) : AttestationEngine<ParsedAttestationRecord, AuthorizationList> {
+    val appData = AppData(
+        packageName = androidPackageName,
+        signatureDigests = androidAppSignatureDigest,
+        appVersion = androidAppVersion
+    )
+    return when (attestationLevel) {
+        Level.HARDWARE -> LegacyHardwareAttestationEngine(
+            AndroidAttestationConfiguration(
+                appData,
+                androidVersion = androidVersion,
+                patchLevel = androidPatchLevel,
+                requireStrongBox = requireStrongBox,
+                allowBootloaderUnlock = unlockedBootloaderAllowed,
+                requireRollbackResistance = requireRollbackResistance,
+                attestationStatementValiditySeconds = attestationStatementValidity.inWholeSeconds,
+                ignoreLeafValidity = true
+            )
+        )
+
+        Level.SOFTWARE -> LegacySoftwareAttestationEngine(
+            AndroidAttestationConfiguration(
+                appData,
+                disableHardwareAttestation = true,
+                enableSoftwareAttestation = true,
+                androidVersion = androidVersion,
+                patchLevel = androidPatchLevel,
+                requireStrongBox = requireStrongBox,
+                allowBootloaderUnlock = unlockedBootloaderAllowed,
+                requireRollbackResistance = requireRollbackResistance,
+                attestationStatementValiditySeconds = attestationStatementValidity.inWholeSeconds,
+                ignoreLeafValidity = true,
+            )
+        )
+
+        Level.NOUGAT -> LegacyNougatHybridAttestationEngine(
+            AndroidAttestationConfiguration(
+                appData,
+                disableHardwareAttestation = true,
+                enableNougatAttestation = true,
+                androidVersion = androidVersion,
+                patchLevel = androidPatchLevel,
+                requireStrongBox = requireStrongBox,
+                allowBootloaderUnlock = unlockedBootloaderAllowed,
+                requireRollbackResistance = requireRollbackResistance,
+                attestationStatementValiditySeconds = attestationStatementValidity.inWholeSeconds,
+                ignoreLeafValidity = true
+            )
+        )
+    }
+}
+
+fun signumAttestationService(
+    attestationLevel: Level,
+    androidPackageName: String,
+    androidAppSignatureDigest: List<ByteArray>,
+    androidVersion: Int? = null,
+    androidAppVersion: Int? = null,
+    androidPatchLevel: PatchLevel? = null,
+    requireStrongBox: Boolean = false,
+    unlockedBootloaderAllowed: Boolean = false,
+    requireRollbackResistance: Boolean = false,
+    attestationStatementValidity: Duration = 5.minutes
+) : AttestationEngine<ParsedAttestationRecord, AuthorizationList> {
+    val singleApp = AppData(
+        packageName = androidPackageName,
+        signatureDigests = androidAppSignatureDigest,
+        appVersion = androidAppVersion
+    )
+    return when (attestationLevel) {
+        Level.HARDWARE -> SignumHardwareAttestationEngine(
+            AndroidAttestationConfiguration(
+                singleApp,
+                androidVersion = androidVersion,
+                patchLevel = androidPatchLevel,
+                requireStrongBox = requireStrongBox,
+                allowBootloaderUnlock = unlockedBootloaderAllowed,
+                requireRollbackResistance = requireRollbackResistance,
+                attestationStatementValiditySeconds = attestationStatementValidity.inWholeSeconds,
+                ignoreLeafValidity = true
+            )
+        )
+
+        Level.SOFTWARE -> SignumSoftwareAttestationEngine(
+            AndroidAttestationConfiguration(
+                singleApp,
+                disableHardwareAttestation = true,
+                enableSoftwareAttestation = true,
+                androidVersion = androidVersion,
+                patchLevel = androidPatchLevel,
+                requireStrongBox = requireStrongBox,
+                allowBootloaderUnlock = unlockedBootloaderAllowed,
+                requireRollbackResistance = requireRollbackResistance,
+                attestationStatementValiditySeconds = attestationStatementValidity.inWholeSeconds,
+                ignoreLeafValidity = true,
+            )
+        )
+
+        Level.NOUGAT -> SignumNougatHybridAttestationEngine(
+            AndroidAttestationConfiguration(
+                singleApp,
+                disableHardwareAttestation = true,
+                enableNougatAttestation = true,
+                androidVersion = androidVersion,
+                patchLevel = androidPatchLevel,
+                requireStrongBox = requireStrongBox,
+                allowBootloaderUnlock = unlockedBootloaderAllowed,
+                requireRollbackResistance = requireRollbackResistance,
+                attestationStatementValiditySeconds = attestationStatementValidity.inWholeSeconds,
+                ignoreLeafValidity = true
+            )
+        )
+    }
+}

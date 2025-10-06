@@ -221,7 +221,7 @@ data class AndroidAttestationConfiguration @JvmOverloads constructor(
     /**
      * Enables software attestation. A [LegacySoftwareAttestationEngine] can only be instantiated if this flag is set to true.
      * Only change this flag, if you **really** know what you are doing!
-     * Enabling this flag, while keeping [disableHardwareAttestation] `true` makes is possible to instantiate both a
+     * Enabling this flag, while keeping [disableHardwareAttestation] `false` makes is possible to instantiate both a
      * [LegacyHardwareAttestationEngine] and a [LegacySoftwareAttestationEngine].
      */
     val enableSoftwareAttestation: Boolean = false,

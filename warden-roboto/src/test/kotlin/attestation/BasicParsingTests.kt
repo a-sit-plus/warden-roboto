@@ -3,9 +3,13 @@
 package at.asitplus.attestation.android.attestation
 
 import at.asitplus.attestation.android.*
+import at.asitplus.attestation.android.AndroidAttestationConfiguration.AppData
 import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyHardwareAttestationEngine
 import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyNougatHybridAttestationEngine
 import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacySoftwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumHardwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumNougatHybridAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumSoftwareAttestationEngine
 import at.asitplus.attestation.data.AttestationData
 import at.asitplus.signum.indispensable.asn1.Asn1Element
 import at.asitplus.signum.indispensable.asn1.Asn1Encodable
@@ -17,6 +21,8 @@ import at.asitplus.signum.indispensable.pki.attestation.AttestationKeyDescriptio
 import at.asitplus.signum.indispensable.pki.attestation.AttestationValue
 import at.asitplus.signum.indispensable.pki.attestation.AuthorizationList.Digest
 import at.asitplus.signum.indispensable.pki.attestation.androidAttestationExtension
+import com.google.android.attestation.AuthorizationList
+
 import com.google.android.attestation.ParsedAttestationRecord
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.datatest.withData
@@ -299,6 +305,12 @@ class BasicParsingTests : FreeSpec({
 
             val legacyAttestationRecord = ParsedAttestationRecord.createParsedAttestationRecord(it.attestationCertChain) // GOOGLE
             compareLegacyWithSignumAttestation(legacyAttestationRecord,attestation)
+
+            /*
+            // CHATGPT
+            val supremeAttestation = Verifier() //GoogleTrustAnchors, { emptySet() }, { Instant.now() })
+                .verify(it.attestationCertChain)
+            */
         }
     }
 })
@@ -553,10 +565,11 @@ fun compareAuthLists(lAuthList: com.google.android.attestation.AuthorizationList
         }
         ?: sAuthList.bootPatchLevel.shouldBeNull()
 
-    // deviceUnique comparison
-    // TODO: not implemented in https://github.com/google/android-key-attestation/blob/master/src/main/java/com/google/android/attestation/AuthorizationList.java
-    sAuthList.deviceUniqueAttestation.shouldBeNull()
+    // DeviceUnique comparison (attribute 720 is named "individualAttestation" legacy implementation)
+    if (lAuthList.individualAttestation()) sAuthList.deviceUniqueAttestation.shouldNotBeNull().shouldBeSuccess()
+    else sAuthList.deviceUniqueAttestation.shouldBeNull()
 
+    // attestationIdSecondImei comparison
     lAuthList.attestationIdSecondImei().getOrNull()?.toByteArray()
         ?.contentEquals(sAuthList.attestationIdSecondImei.shouldNotBeNull().shouldBeSuccess().stringValue.toByteArray())
         ?: sAuthList.attestationIdSecondImei.shouldBeNull()
@@ -565,81 +578,4 @@ fun compareAuthLists(lAuthList: com.google.android.attestation.AuthorizationList
     // TODO: not implemented in https://github.com/google/android-key-attestation/blob/master/src/main/java/com/google/android/attestation/AuthorizationList.java
     sAuthList.moduleHash.shouldBeNull()
 
-    // individualAttestation comparison
-    // TODO: AuthorizationList.java also contains "individualAttestation" (boolean)
-    lAuthList.individualAttestation().shouldBe(false);
-}
-
-// TODO: move somewhere else? not used here!
-fun attestationService(
-    attestationLevel: Level,
-    androidPackageName: String,
-    androidAppSignatureDigest: List<ByteArray>,
-    androidVersion: Int? = null,
-    androidAppVersion: Int? = null,
-    androidPatchLevel: PatchLevel? = null,
-    requireStrongBox: Boolean = false,
-    unlockedBootloaderAllowed: Boolean = false,
-    requireRollbackResistance: Boolean = false,
-    attestationStatementValiditiy: Duration = 5.minutes
-) = when (attestationLevel) {
-    Level.HARDWARE -> LegacyHardwareAttestationEngine(
-        AndroidAttestationConfiguration(
-
-                AndroidAttestationConfiguration.AppData(
-                    packageName = androidPackageName,
-                    signatureDigests = androidAppSignatureDigest,
-                    appVersion = androidAppVersion
-            ),
-            androidVersion = androidVersion,
-            patchLevel = androidPatchLevel,
-            requireStrongBox = requireStrongBox,
-            allowBootloaderUnlock = unlockedBootloaderAllowed,
-            requireRollbackResistance = requireRollbackResistance,
-            attestationStatementValiditySeconds = attestationStatementValiditiy.inWholeSeconds,
-            ignoreLeafValidity = true
-        )
-    )
-
-    Level.SOFTWARE -> LegacySoftwareAttestationEngine(
-        AndroidAttestationConfiguration(
-
-                AndroidAttestationConfiguration.AppData(
-                    packageName = androidPackageName,
-                    signatureDigests = androidAppSignatureDigest,
-                    appVersion = androidAppVersion
-
-            ),
-            disableHardwareAttestation = true,
-            enableSoftwareAttestation = true,
-            androidVersion = androidVersion,
-            patchLevel = androidPatchLevel,
-            requireStrongBox = requireStrongBox,
-            allowBootloaderUnlock = unlockedBootloaderAllowed,
-            requireRollbackResistance = requireRollbackResistance,
-            attestationStatementValiditySeconds = attestationStatementValiditiy.inWholeSeconds,
-            ignoreLeafValidity = true,
-        )
-    )
-
-    Level.NOUGAT -> LegacyNougatHybridAttestationEngine(
-        AndroidAttestationConfiguration(
-            listOf(
-                AndroidAttestationConfiguration.AppData(
-                    packageName = androidPackageName,
-                    signatureDigests = androidAppSignatureDigest,
-                    appVersion = androidAppVersion
-                )
-            ),
-            disableHardwareAttestation = true,
-            enableNougatAttestation = true,
-            androidVersion = androidVersion,
-            patchLevel = androidPatchLevel,
-            requireStrongBox = requireStrongBox,
-            allowBootloaderUnlock = unlockedBootloaderAllowed,
-            requireRollbackResistance = requireRollbackResistance,
-            attestationStatementValiditySeconds = attestationStatementValiditiy.inWholeSeconds,
-            ignoreLeafValidity = true
-        )
-    )
 }

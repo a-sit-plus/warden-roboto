@@ -1,13 +1,19 @@
 package at.asitplus.attestation.android
+// TODO: clean-up: move all attestation-stuff to folder "attestation" or remove that folder?
 
 import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyHardwareAttestationEngine
 import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacyNougatHybridAttestationEngine
 import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.LegacySoftwareAttestationEngine
+import at.asitplus.attestation.android.at.asitplus.attestation.android.legacy.SignumHardwareAttestationEngine
+import at.asitplus.attestation.android.attestation.compareAuthLists
 import at.asitplus.attestation.android.exceptions.AndroidAttestationException
 import at.asitplus.attestation.android.exceptions.AttestationValueException
 import at.asitplus.attestation.android.exceptions.CertificateInvalidException
+import at.asitplus.attestation.android.signum.SignumAttestationEngine
 import at.asitplus.attestation.data.AttestationData
 import at.asitplus.attestation.data.attestationCertChain
+import at.asitplus.signum.indispensable.pki.attestation.androidAttestationExtension
+import at.asitplus.signum.indispensable.toKmpCertificate
 import com.google.android.attestation.ParsedAttestationRecord
 import com.google.android.attestation.ParsedAttestationRecord.SecurityLevel
 import io.kotest.assertions.throwables.shouldThrow
@@ -97,17 +103,22 @@ class AttestationTests : FreeSpec() {
 
                 val signatureDigests = expectedDigests
                 "should fail with HardwareAttestationChecker" {
+                    val attestationConfiguration = AndroidAttestationConfiguration(
+                        listOf(
+                            AndroidAttestationConfiguration.AppData(
+                                packageName,
+                                signatureDigests,
+                            )
+                        ),
+                        ignoreLeafValidity = true
+                    )
                     LegacyHardwareAttestationEngine(
-                        AndroidAttestationConfiguration(
-                            listOf(
-                                AndroidAttestationConfiguration.AppData(
-                                    packageName,
-                                    signatureDigests,
-                                )
-                            ),
-                            ignoreLeafValidity = true
-                        )
+                        attestationConfiguration
                     ).apply {
+                        compareAuthLists(
+                            ParsedAttestationRecord.createParsedAttestationRecord(attestationCertChain).teeEnforced()/*could fail due to cert problems*/,
+                            attestationCertChain.first().toKmpCertificate().getOrThrow().androidAttestationExtension!!.hardwareEnforced
+                        ) // TODO TODO TODO vor jedem verifyAttestation machen!
                         shouldThrow<CertificateInvalidException> {
                             verifyAttestation(
                                 attestationCertChain,
@@ -115,6 +126,15 @@ class AttestationTests : FreeSpec() {
                                 challenge
                             )
                         }.reason shouldBe CertificateInvalidException.Reason.TRUST
+
+                        shouldThrow<CertificateInvalidException> {
+                            SignumHardwareAttestationEngine(attestationConfiguration).verifyAttestation(
+                                attestationCertChain,
+                                verificationDate,
+                                challenge
+                            )
+                        }.reason shouldBe CertificateInvalidException.Reason.TRUST
+
                         val collectDebugInfo =
                             collectDebugInfo(attestationCertChain, challenge, verificationDate).serialize()
 
