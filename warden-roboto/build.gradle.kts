@@ -117,26 +117,21 @@ val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory")
     delete(tasks.dokkaHtml.get().outputDirectory.get())
 }
 
-val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(tasks.dokkaHtml.get().outputDirectory)
-}
-
-val sourcesJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
-}
-
-
-
 publishing {
     publications {
-        register("mavenJava", MavenPublication::class) {
-            from(components["java"])
-            if (this.name != "relocation") artifact(sourcesJar.get())
-            if (this.name != "relocation") artifact(javadocJar.get())
+        create<MavenPublication>("relocation") {
             pom {
+                // Old artifact coordinates
+                version = artifactVersion
+                distributionManagement {
+                    relocation {
+                        // New artifact coordinates
+                        groupId ="at.asitplus.warden"
+                        artifactId = "roboto"
+                        version = "0.9.0"
+                        message = "Integrated into Warden Supreme: https://a-sit-plus.github.io/warden-supreme/"
+                    }
+                }
                 name.set("WARDEN-roboto")
                 description.set("Server-Side Android Attestation Library")
                 url.set("https://github.com/a-sit-plus/warden-roboto")

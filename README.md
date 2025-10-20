@@ -13,6 +13,10 @@
 
 </div>
 
+
+> [!IMPORTANT]  
+> This repository has been integrated into [Warden Supreme](https://a-sit-plus.github.io/warden-supreme/). All further development happens there.
+
 This Kotlin library provides a convenient API (a single function, actually) to remotely attest the integrity of an Android device, its OS, and a specific application.
 It is intended to be integrated into back-end services requiring authentic, unmodified mobile clients (but it also works in other settings, such as peer-to-peer-scenarios).
 
